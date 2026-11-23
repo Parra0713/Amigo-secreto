@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f6fa" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="El Plan">
+<meta name="description" content="Tu puesto en el juego de revelación del amigo secreto.">
+<title>El Plan — tu celular</title>
+<link rel="manifest" href="/play/manifest.json">
+<link rel="apple-touch-icon" href="/play/apple-touch-icon.png">
+<link rel="icon" href="/play/icono-192.png">
+<link rel="stylesheet" href="/shared/estilos.css">
+<style>
+  /* Las medidas salen de las variables de estilos.css: retícula de 8 y toque de 44. */
+  main{max-width:520px;margin:0 auto;padding:var(--e3) var(--e3) var(--e6)}
+  .barra{position:sticky;top:0;background:var(--fondo);padding:var(--e2) 0;
+         border-bottom:1.5px solid var(--borde);display:flex;align-items:center;
+         gap:var(--e2);z-index:5}
+  .fichas{margin-left:auto;font-weight:700;font-size:var(--txt-titulo);color:var(--oro);
+          font-variant-numeric:tabular-nums}
+  .pregunta{margin:var(--e4) 0}
+  .opciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(46%,1fr));gap:var(--e2)}
+  .op{padding:var(--e2);border-radius:12px;border:1.5px solid var(--borde);
+      background:var(--fondo3);color:var(--tinta);font-size:var(--txt-cuerpo);
+      min-height:var(--toque)}
+  .op:active{transform:scale(.97)}
+  .op[aria-pressed="true"]{border-color:var(--oro);border-width:2.5px;font-weight:600}
+  .op[aria-pressed="true"]::after{content:" ✓";color:var(--oro)}
+  .precio{font-weight:700;color:var(--oro);font-variant-numeric:tabular-nums}
+  .narracion{font-size:var(--txt-secundario);color:var(--tenue);font-style:italic;
+             margin:var(--e2) 0;min-height:2.6em}
+  .pin{font-size:40px;font-weight:700;letter-spacing:.3em;text-align:center;color:var(--oro);
+       font-variant-numeric:tabular-nums}
+  .red{font-size:var(--txt-pie)}
+</style>
+</head>
+<body class="degradado">
+<header class="barra">
+  <strong id="miApodo">El Plan</strong>
+  <span id="red" class="red tenue" role="status" aria-live="polite">conectando…</span>
+  <span id="misFichas" class="fichas oculto" aria-label="Tus fichas"></span>
+</header>
+<main>
+  <p id="narracion" class="narracion" role="status" aria-live="polite"></p>
+  <div id="error" class="aviso oculto" role="alert"></div>
+  <div id="vista"></div>
+</main>
+
+<script type="module">
+import { conectar, mantenerPantallaEncendida, vibrar, guardar, leer } from '/shared/cliente.js';
+import { desbloquear, sonidos } from '/shared/audio.js';
+
+const $ = (id) => document.getElementById(id);
+const vista = $('vista');
+let sesion = leer('plan.sesion');   // { id, pin, apodo }
+let cuestionario = null;
+let ultimaVista = null;
+let paso = 'inicio';                 // inicio | cuestionario | pareja | tarjetas | juego
+
+const pintar = (html) => { vista.innerHTML = html; };
+const mostrarError = (texto) => {
+  $('error').textContent = texto;
+  $('error').classList.remove('oculto');
+  setTimeout(() => $('error').classList.add('oculto'), 4000);
+};
+
+const ERRORES = {
+  PIN_INCORRECTO: 'Ese PIN no es. Revisa e intenta otra vez.',
+  FICHAS_INSUFICIENTES: 'No te alcanzan las fichas.',
+  TRAMPA_PROPIA: 'No puedes ponerte una trampa a ti mismo.',
+  LIMITE_TRAMPAS: 'Ya pusiste tu trampa de esta ronda.',
+  LIMITE_FALSAS_MONTON: 'Ese montón ya tiene demasiadas tarjetas falsas.',
+  APUESTA_INVALIDA: 'La apuesta debe ser entre 1 y tus fichas.',
+  FASE_INCORRECTA: 'Eso no va en este momento del juego.',
+  FALTAN_RESPUESTAS: 'Responde un poquito más para poder armar tus pistas.',
+  APODO_REPETIDO: 'Ese apodo ya lo usó alguien. Pon otro.',
+  APODO_NO_PERMITIDO: 'Mejor otro apodo.',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos. Espera un momento.',
+  SIN_MATERIAL_PARA_TRAMPA: 'No hay con qué armar esa mentira. Prueba otra categoría.',
+  YA_COMPRADA: 'Esa pista ya es tuya.',
+  YA_ELIGIO: 'Ya elegiste.'
+};
+
+/** Borra la sesión local y devuelve al jugador al registro, sin culparlo. */
+function reiniciarSesion() {
+  try { localStorage.removeItem('plan.sesion'); } catch {}
+  sesion = null;
+  ultimaVista = null;
+  paso = 'inicio';
+  $('miApodo').textContent = 'El Plan';
+  $('misFichas').classList.add('oculto');
+  $('narracion').textContent = '';
+  // También se limpia el saludo guardado, para no reintentar el PIN viejo al reconectar.
+  cliente?.identificar({});
+  pantallaInicio();
+  mostrarError('El grupier empezó una partida nueva. Vuelve a poner tu apodo para entrar.');
+}
+
+const cliente = conectar({
+  rol: 'play',
+  alEstadoRed: (e) => { $('red').textContent = e === 'conectado' ? 'en línea' : 'reconectando…'; },
+  alMensaje(m) {
+    // El grupier archivó la partida: esta sesión ya no sirve, hay que registrarse otra vez.
+    if (m.t === 'reiniciada') return reiniciarSesion();
+    if (m.t === 'error') return mostrarError(ERRORES[m.codigo] || m.codigo);
+    if (m.t === 'narrador') return void ($('narracion').textContent = m.texto);
+    if (m.t === 'vista') {
+      ultimaVista = m.vista;
+      $('miApodo').textContent = `${m.vista.yo.avatar} ${m.vista.yo.apodo}`;
+      $('misFichas').textContent = `${m.vista.yo.fichas} 🪙`;
+      $('misFichas').classList.remove('oculto');
+      if (paso === 'juego') pintarJuego(m.vista, m.cuentaRegresiva);
+    }
+  }
+});
+
+if (sesion?.id) { cliente.identificar({ jugadorId: sesion.id, pin: sesion.pin }); paso = 'juego'; pintar('<p class="tenue"><span class="cargando" aria-hidden="true"></span>Reconectando tu sesión…</p>'); }
+else pantallaInicio();
+
+// ---------- registro ----------
+
+function pantallaInicio() {
+  pintar(`
+    <h2>Entra al juego</h2>
+    <p class="tenue">Pon un apodo y escoge un emoji. Así te verán en la TV.</p>
+    <label for="apodo">Tu apodo</label>
+    <input id="apodo" maxlength="20" placeholder="Como quieres que te vean" autocomplete="off"
+           enterkeyhint="done" autocapitalize="words">
+    <div class="opciones" id="avatares" role="group" aria-label="Escoge un avatar" style="margin:var(--e2) 0">
+      ${['🎁','🎄','⭐','🦊','🐱','🐻','🍪','🎅','🤫','😈','🧠','🍀'].map((e, i) =>
+        `<button class="op" data-avatar="${e}" aria-pressed="${i === 0}" aria-label="Avatar ${e}"
+          style="font-size:26px">${e}</button>`).join('')}
+    </div>
+    <button id="entrar" class="boton">Entrar al juego</button>
+  `);
+  desbloquear();
+  let avatar = '🎁';
+  $('avatares').onclick = (e) => {
+    const b = e.target.closest('[data-avatar]');
+    if (!b) return;
+    avatar = b.dataset.avatar;
+    [...$('avatares').children].forEach((x) => x.setAttribute('aria-pressed', x === b));
+    sonidos.toque();
+  };
+  $('entrar').onclick = async () => {
+    const apodo = $('apodo').value.trim();
+    if (apodo.length < 2) return mostrarError('Escribe un apodo de al menos 2 letras.');
+    const r = await fetch('/api/registrar', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ apodo, avatar })
+    });
+    const datos = await r.json();
+    if (!r.ok) return mostrarError(ERRORES[datos.error] || datos.error);
+    sesion = datos;
+    guardar('plan.sesion', sesion);
+    cliente.identificar({ jugadorId: sesion.id, pin: sesion.pin });
+    mantenerPantallaEncendida();
+    pantallaPin();
+  };
+}
+
+function pantallaPin() {
+  pintar(`
+    <h2>Tu PIN</h2>
+    <div class="pin">${sesion.pin}</div>
+    <p class="tenue">Anótalo. Si cierras el navegador o se te apaga el celular, con este PIN vuelves a tu puesto.</p>
+    <button id="seguir" class="boton">Listo, continuar</button>
+  `);
+  $('seguir').onclick = pantallaCuestionario;
+}
+
+async function pantallaCuestionario() {
+  paso = 'cuestionario';
+  cuestionario ||= await (await fetch('/api/cuestionario')).json();
+  const respuestas = {};
+
+  pintar(`
+    <h2>Cuéntanos de ti</h2>
+    <p class="tenue">De aquí salen tus pistas. Puedes saltarte las que quieras, pero necesitamos mínimo ${cuestionario.minimo}.</p>
+    <div id="preguntas">
+      ${cuestionario.preguntas.map((p) => `
+        <div class="pregunta" data-id="${p.id}">
+          <h3>${p.texto}</h3>
+          ${p.opciones
+            ? `<div class="opciones" role="group" aria-label="${p.texto}">${p.opciones.map((o) => `<button class="op" data-valor="${o}">${o}</button>`).join('')}</div>
+               ${p.tipo === 'opcion_o_texto' ? `<input class="otro" placeholder="…o escríbela" maxlength="60" aria-label="Otra respuesta para: ${p.texto}" style="margin-top:var(--e2)">` : ''}`
+            : `<input class="texto" maxlength="120" placeholder="Respuesta corta" aria-label="${p.texto}" enterkeyhint="next">`}
+          <button class="op omitir" style="margin-top:var(--e2);width:100%">Prefiero no responder</button>
+        </div>`).join('')}
+    </div>
+    <div id="contador" class="tenue pie" role="status" aria-live="polite"></div>
+    <button id="enviar" class="boton">Guardar respuestas</button>
+  `);
+
+  const contar = () => {
+    const n = Object.values(respuestas).filter(Boolean).length;
+    $('contador').textContent = `${n} de ${cuestionario.minimo} mínimas`;
+    $('enviar').disabled = n < cuestionario.minimo;
+  };
+  contar();
+
+  $('preguntas').addEventListener('click', (e) => {
+    const bloque = e.target.closest('.pregunta');
+    if (!bloque) return;
+    const id = bloque.dataset.id;
+    if (e.target.classList.contains('op') && e.target.dataset.valor) {
+      respuestas[id] = e.target.dataset.valor;
+      bloque.querySelectorAll('.op[data-valor]').forEach((b) => b.setAttribute('aria-pressed', b === e.target));
+      sonidos.toque();
+    } else if (e.target.classList.contains('omitir')) {
+      delete respuestas[id];
+      bloque.querySelectorAll('.op[data-valor]').forEach((b) => b.setAttribute('aria-pressed', false));
+      bloque.querySelectorAll('input').forEach((i) => { i.value = ''; });
+      e.target.setAttribute('aria-pressed', true);
+    }
+    contar();
+  });
+  $('preguntas').addEventListener('input', (e) => {
+    const bloque = e.target.closest('.pregunta');
+    if (e.target.matches('.texto, .otro')) {
+      respuestas[bloque.dataset.id] = e.target.value.trim() || undefined;
+      contar();
+    }
+  });
+
+  $('enviar').onclick = () => {
+    cliente.enviar({ t: 'registro.cuestionario', respuestas });
+    pantallaPareja();
+  };
+}
+
+function pantallaPareja() {
+  paso = 'pareja';
+  const otros = (ultimaVista?.jugadores || []).filter((j) => j.id !== sesion.id);
+  pintar(`
+    <h2>¿A quién le regalas?</h2>
+    <p class="tenue">Nadie más lo ve, ni el anfitrión, hasta la revelación.</p>
+    <div class="opciones">${otros.map((j) => `<button class="op" data-id="${j.id}">${j.avatar} ${j.apodo}</button>`).join('')}</div>
+    <p class="tenue">¿Falta alguien? Espera a que entre y refresca.</p>
+    <button id="refrescar" class="boton secundario">Refrescar lista</button>
+  `);
+  $('refrescar').onclick = () => pantallaPareja();
+  vista.onclick = (e) => {
+    const b = e.target.closest('[data-id]');
+    if (!b) return;
+    cliente.enviar({ t: 'registro.pareja', receptorId: b.dataset.id });
+    vibrar(80);
+    pantallaTarjetas();
+  };
+}
+
+function pantallaTarjetas() {
+  paso = 'tarjetas';
+  pintar(`
+    <h2>¿Quieres escribir tus propias pistas?</h2>
+    <p class="tenue">Opcional. Si escribes una, reemplaza a la automática de ese nivel. Habla de ti, no digas tu nombre.</p>
+    ${[['facil', 'Fácil (barata, descarta poco)'], ['media', 'Media'], ['dificil', 'Difícil (casi te delata)']].map(([n, t]) => `
+      <div class="pregunta"><label for="t-${n}">${t}</label><input id="t-${n}" maxlength="200" placeholder="Opcional"></div>`).join('')}
+    <button id="guardarT" class="boton">Terminar registro</button>
+  `);
+  $('guardarT').onclick = () => {
+    cliente.enviar({
+      t: 'registro.tarjetas',
+      facil: $('t-facil').value, media: $('t-media').value, dificil: $('t-dificil').value
+    });
+    paso = 'juego';
+    pintar('<h2>Listo 🎉</h2><p class="tenue">Mira la TV. El grupier avisa cuando empieza.</p>');
+  };
+}
+
+// ---------- juego ----------
+
+function pintarJuego(v, cuenta) {
+  const reloj = cuenta != null ? `<div class="micro" role="timer" aria-live="off">⏱ ${cuenta} segundos</div>` : '';
+
+  if (v.fase === 'registro') {
+    return pintar(`<h2>Listo 🎉</h2><p class="tenue">Esperando a los demás. Mira la TV.</p>`);
+  }
+
+  if (v.fase === 'ronda1') {
+    if (v.listo) {
+      return pintar(`<h2>Listo</h2>${reloj}
+        <p class="tenue">Ya terminaste de comprar. Esperando a los demás; el juego sigue solo.</p>
+        ${v.monton.filter((t) => t.comprada).map((t) => `
+          <div class="tarjeta"><div class="micro">${t.nivel}</div><p style="font-size:1.15rem">${t.texto}</p></div>`).join('')}`);
+    }
+    return pintar(`
+      <h2>Tu montón</h2>${reloj}
+      <p class="tenue">Compra las pistas que quieras. Las fichas gastadas no vuelven.</p>
+      ${v.monton.map((t) => `
+        <div class="tarjeta ${t.comprada ? 'voltea' : ''}">
+          <div class="fila">
+            <strong class="crece">${t.nivel.toUpperCase()}</strong>
+            <span class="precio">${t.precio} 🪙</span>
+          </div>
+          ${t.comprada
+            ? `<p style="font-size:1.15rem">${t.texto}</p>`
+            : `<button class="boton" data-comprar="${t.id}" ${v.yo.fichas < t.precio ? 'disabled' : ''}>Comprar</button>`}
+        </div>`).join('')}
+      <button class="boton secundario" data-listo="ronda1">Ya terminé de comprar</button>
+      <p class="tenue pie">Cuando todos terminen, la ronda cierra sola.</p>
+    `);
+  }
+
+  if (v.fase === 'ronda2') {
+    if (!v.puedeTrampear) return pintar(`<h2>${v.listo ? 'Listo' : 'Trampa puesta'}</h2>${reloj}
+      <p class="tenue">${v.listo && !v.objetivos ? 'Ya hiciste lo tuyo. Nadie sabrá que fuiste tú. El juego sigue solo.' : 'Esperando a los demás.'}</p>`);
+    const objetivos = v.objetivos || [];
+    if (objetivos.length === 0) {
+      return pintar(`<h2>Esta ronda no te toca</h2>${reloj}
+        <p class="tenue">Para armar una mentira creíble hace falta la respuesta real de otra
+        persona, y ahora mismo no hay material para ningún montón. Mira la TV.</p>
+        <button class="boton secundario" data-listo="ronda2">Entendido</button>`);
+    }
+    // Solo se ofrecen víctimas y temas que el servidor confirmó que tienen material.
+    return pintar(`
+      <h2>Pon una tarjeta falsa</h2>${reloj}
+      <p class="tenue">Cuesta 1 🪙. Escoge a quién y de qué tema. Yo armo la mentira.</p>
+      <h3 id="tituloVictimas">¿A quién?</h3>
+      <div class="opciones" id="victimas" role="group" aria-labelledby="tituloVictimas">
+        ${objetivos.map((j) => `<button class="op" data-victima="${j.id}">${j.avatar} ${j.apodo}</button>`).join('')}
+      </div>
+      <div id="pasoTema" class="oculto">
+        <h3 id="tituloCategorias" style="margin-top:var(--e3)">¿De qué tema?</h3>
+        <p class="tenue pie" id="ayudaTema">Solo salen los temas de los que sí se puede armar una mentira.</p>
+        <div class="opciones" id="categorias" role="group" aria-labelledby="tituloCategorias"></div>
+        <h3 id="tituloNiveles" style="margin-top:var(--e3)">¿Qué tan fuerte?</h3>
+        <div class="opciones" id="niveles" role="group" aria-labelledby="tituloNiveles">
+          ${[['facil', 'Vaga'], ['media', 'Media'], ['dificil', 'Muy concreta']].map(([n, t]) =>
+            `<button class="op" data-nivel="${n}">${t}</button>`).join('')}
+        </div>
+      </div>
+      <button id="trampear" class="boton" disabled>Poner la trampa</button>
+      <button class="boton secundario" data-listo="ronda2">No pongo trampa</button>
+      <p class="tenue pie">Cuando todos decidan, la ronda cierra sola.</p>
+    `);
+  }
+
+  if (v.fase === 'ronda3') {
+    const d = v.dilema;
+    if (!d?.emparejado) return pintar(`<h2>Te quedaste sin pareja</h2>${reloj}<p class="tenue">${d?.bonoSobrante ? 'Ganas 1 ficha sin jugar. De regalo.' : 'Mira la TV.'}</p>`);
+    if (d.miEleccion && !d.suEleccion) return pintar(`<h2>Elegiste ${d.miEleccion}</h2>${reloj}<p class="tenue">Esperando a ${d.conApodo}…</p>`);
+    if (d.suEleccion) return pintar(`
+      <h2>Resultado</h2>
+      <p>Tú: <strong>${d.miEleccion || 'guardar'}</strong> · ${d.conApodo}: <strong>${d.suEleccion}</strong></p>
+      ${d.pistaRecibida ? `<div class="tarjeta voltea"><div class="micro">Pista que recibiste</div><p style="font-size:1.15rem">${d.pistaRecibida}</p></div>` : '<p class="tenue">No recibiste pista.</p>'}`);
+    return pintar(`
+      <h2>Dilema con ${d.conApodo}</h2>${reloj}
+      <p class="tenue">Si ambos cooperan, ganan 2 y ven una pista real. Si solo uno guarda, ese gana 3. Si los dos guardan, nada.</p>
+      <button class="boton" data-dilema="cooperar">Cooperar</button>
+      <button class="boton secundario" data-dilema="guardar">Guardar</button>
+    `);
+  }
+
+  if (v.fase === 'ronda4') {
+    if (v.miApuesta) {
+      const quien = v.jugadores.find((j) => j.id === v.miApuesta.sospechosoId);
+      return pintar(`<h2>Apuesta hecha</h2>${reloj}<p>${v.miApuesta.monto} 🪙 a <strong>${quien?.apodo}</strong>.</p><p class="tenue">Mira la TV.</p>`);
+    }
+    return pintar(`
+      <h2>¿Quién es tu amigo secreto?</h2>${reloj}
+      <div class="opciones" id="sospechosos" role="group" aria-label="¿Quién crees que es tu amigo secreto?">
+        ${v.jugadores.filter((j) => j.id !== v.yo.id).map((j) => `<button class="op" data-sospechoso="${j.id}">${j.avatar} ${j.apodo}</button>`).join('')}
+      </div>
+      <label for="monto" style="margin-top:var(--e3)">¿Cuánto apuestas?</label>
+      <input id="monto" type="range" min="1" max="${v.yo.fichas}"
+             value="${Math.max(1, Math.ceil(v.yo.fichas / 2))}"
+             aria-label="Cantidad de fichas a apostar" aria-valuemin="1" aria-valuemax="${v.yo.fichas}">
+      <div id="montoTexto" class="precio" style="font-size:26px;text-align:center" role="status" aria-live="polite">${Math.max(1, Math.ceil(v.yo.fichas / 2))} 🪙</div>
+      <button id="apostar" class="boton" disabled>Apostar</button>
+    `);
+  }
+
+  if (v.fase === 'revelacion' || v.fase === 'fin') {
+    return pintar(`<h2>${v.fase === 'fin' ? 'Se acabó' : 'Revelación'}</h2><p class="tenue">Mira la TV. Tus pistas y las trampas salen ahí.</p>
+      <div class="tarjeta"><div class="micro">Tus fichas</div><div class="precio" style="font-size:34px">${v.yo.fichas}</div></div>`);
+  }
+}
+
+// Un solo manejador para todas las acciones del juego.
+let seleccion = {};
+
+/** Deja los grupos de opciones sin nada marcado, en la interfaz y en la lógica. */
+function limpiarSeleccion() {
+  seleccion = {};
+  vista.querySelectorAll('.op[aria-pressed="true"]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+  const btnTrampa = document.getElementById('trampear');
+  if (btnTrampa) btnTrampa.disabled = true;
+  const btnApostar = document.getElementById('apostar');
+  if (btnApostar) btnApostar.disabled = true;
+  document.getElementById('pasoTema')?.classList.add('oculto');
+}
+
+/** Muestra solo los temas viables para la víctima escogida. */
+function pintarTemasDe(victimaId) {
+  const objetivo = (ultimaVista?.objetivos || []).find((j) => j.id === victimaId);
+  const caja = document.getElementById('categorias');
+  if (!objetivo || !caja) return;
+  caja.innerHTML = objetivo.categorias
+    .map((c) => `<button class="op" data-categoria="${c}">${c.replace(/_/g, ' ')}</button>`).join('');
+  document.getElementById('ayudaTema').textContent = objetivo.categorias.length === 1
+    ? 'Solo hay un tema con material para este montón.'
+    : `Hay ${objetivo.categorias.length} temas con material para este montón.`;
+  document.getElementById('pasoTema').classList.remove('oculto');
+  delete seleccion.categoria;
+}
+
+vista.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+
+  if (b.dataset.comprar) { cliente.enviar({ t: 'ronda1.comprar', tarjetaId: b.dataset.comprar }); vibrar(50); return; }
+  if (b.dataset.listo === 'ronda1') { cliente.enviar({ t: 'ronda1.listo' }); vibrar(60); return; }
+  if (b.dataset.listo === 'ronda2') { cliente.enviar({ t: 'ronda2.pasar' }); vibrar(60); return; }
+  if (b.dataset.dilema) { cliente.enviar({ t: 'ronda3.elegir', opcion: b.dataset.dilema }); vibrar(70); return; }
+
+  for (const campo of ['victima', 'categoria', 'nivel', 'sospechoso']) {
+    if (b.dataset[campo]) {
+      seleccion[campo] = b.dataset[campo];
+      b.parentElement.querySelectorAll('.op').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      sonidos.toque();
+      if (campo === 'victima') pintarTemasDe(b.dataset.victima);
+    }
+  }
+
+  const btnTrampa = document.getElementById('trampear');
+  if (btnTrampa) btnTrampa.disabled = !(seleccion.victima && seleccion.categoria && seleccion.nivel);
+  const btnApostar = document.getElementById('apostar');
+  if (btnApostar) btnApostar.disabled = !seleccion.sospechoso;
+
+  if (b.id === 'trampear') {
+    cliente.enviar({ t: 'ronda2.trampa', victimaId: seleccion.victima, categoria: seleccion.categoria, nivel: seleccion.nivel });
+    limpiarSeleccion();
+    vibrar([40, 40, 80]);
+  }
+  if (b.id === 'apostar') {
+    cliente.enviar({ t: 'ronda4.apostar', sospechosoId: seleccion.sospechoso, monto: Number(document.getElementById('monto').value) });
+    limpiarSeleccion();
+    vibrar(100);
+  }
+});
+vista.addEventListener('input', (e) => {
+  if (e.target.id === 'monto') document.getElementById('montoTexto').textContent = `${e.target.value} 🪙`;
+});
+
+// Vibra cuando llega una pista nueva comprada.
+let compradasAntes = 0;
+setInterval(() => {
+  const n = (ultimaVista?.monton || []).filter((t) => t.comprada).length;
+  if (n > compradasAntes) { vibrar([30, 50, 30]); compradasAntes = n; }
+}, 500);
+</script>
+</body>
+</html>

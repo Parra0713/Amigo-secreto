@@ -1,0 +1,160 @@
+/* ============================================================
+   Diseño compartido.
+   Reglas derivadas de las Human Interface Guidelines de Apple
+   (ver docs/HIG.md): área de toque mínima de 44 px, retícula de 8,
+   tipografía del sistema, soporte de apariencia clara y oscura,
+   y respeto por los ajustes de accesibilidad del usuario.
+   ============================================================ */
+
+:root{
+  /* Retícula de 8 puntos */
+  --e1:4px; --e2:8px; --e3:16px; --e4:24px; --e5:32px; --e6:48px;
+
+  /* Área mínima de toque (HIG: 44 x 44 pt) */
+  --toque:44px;
+
+  --radio:14px; --radio-grande:20px;
+  --sombra:0 10px 30px rgba(0,0,0,.45);
+
+  /* Tipografía del sistema: SF en Apple, Segoe en Windows, Roboto en Android */
+  --fuente:-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,
+           "Helvetica Neue",Arial,sans-serif;
+
+  /* Escala tipográfica (cuerpo 17 px, como el cuerpo de iOS) */
+  --txt-grande:28px; --txt-titulo:22px; --txt-cuerpo:17px;
+  --txt-secundario:15px; --txt-pie:13px; --txt-micro:11px;
+
+  /* Apariencia oscura (predeterminada: el juego se juega de noche) */
+  color-scheme:dark light;
+  --fondo:#0b0f1a; --fondo2:#131a2b; --fondo3:#0d1322;
+  --tinta:#f4f6fb; --tenue:#a8b3cc;
+  --oro:#f2c14e; --oro-tinta:#1b1405;
+  --rojo:#ff6b67; --verde:#5ddba0; --borde:#2a3350; --foco:#7aa2ff;
+}
+
+/* Apariencia clara: /play y /admin se adaptan si el celular está en claro.
+   /tv se queda oscura siempre: es una pantalla de escenario. */
+@media (prefers-color-scheme: light){
+  :root:not(.siempre-oscuro){
+    --fondo:#f5f6fa; --fondo2:#ffffff; --fondo3:#ffffff;
+    --tinta:#11151f; --tenue:#4a5366;
+    --oro:#8a5a00; --oro-tinta:#ffffff;
+    --rojo:#b3261e; --verde:#1b7a4b; --borde:#c9cfdd; --foco:#1a4bd8;
+    --sombra:0 6px 20px rgba(16,24,40,.12);
+  }
+}
+
+/* Más contraste si el usuario lo pidió en el sistema */
+@media (prefers-contrast: more){
+  :root{--tenue:var(--tinta); --borde:var(--tinta)}
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;height:100%}
+body{
+  background:var(--fondo);
+  color:var(--tinta);
+  font-family:var(--fuente);
+  font-size:var(--txt-cuerpo);
+  line-height:1.45;
+  /* Zonas seguras: muescas, islas dinámicas y barra de gestos */
+  padding:env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+body.degradado{background:radial-gradient(120% 120% at 50% 0%,var(--fondo2) 0%,var(--fondo) 60%)}
+
+h1,h2,h3{margin:0 0 var(--e2);line-height:1.15;letter-spacing:-.01em}
+h1{font-size:var(--txt-grande)} h2{font-size:var(--txt-titulo)} h3{font-size:var(--txt-cuerpo)}
+p{margin:0 0 var(--e3)}
+
+/* ---------- controles ---------- */
+
+button{
+  font-family:inherit;font-size:var(--txt-cuerpo);border:0;border-radius:var(--radio);
+  min-height:var(--toque);min-width:var(--toque);   /* HIG: 44 x 44 */
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s ease, opacity .12s ease;
+}
+.boton{
+  display:block;width:100%;padding:var(--e3);margin:var(--e2) 0;
+  font-size:var(--txt-titulo);font-weight:600;
+  background:var(--oro);color:var(--oro-tinta);box-shadow:var(--sombra);
+  min-height:52px;
+}
+.boton:active{transform:scale(.97)}
+.boton.secundario{background:var(--fondo2);color:var(--tinta);border:1.5px solid var(--borde);box-shadow:none}
+.boton.destructivo{background:transparent;color:var(--rojo);border:1.5px solid var(--rojo);box-shadow:none}
+.boton:disabled{opacity:.4;cursor:not-allowed}
+.boton:disabled:active{transform:none}
+
+/* Separación mínima entre controles vecinos (HIG: 8 px) */
+.boton + .boton{margin-top:var(--e2)}
+
+/* Foco visible para teclado y control por conmutador, sin molestar al tocar */
+:focus-visible{outline:3px solid var(--foco);outline-offset:2px;border-radius:var(--radio)}
+
+label{display:block;font-size:var(--txt-secundario);color:var(--tenue);margin-bottom:var(--e1)}
+input,select,textarea{
+  width:100%;padding:var(--e2) var(--e3);font-size:var(--txt-cuerpo);font-family:inherit;
+  min-height:var(--toque);
+  border-radius:12px;border:1.5px solid var(--borde);
+  background:var(--fondo3);color:var(--tinta);
+}
+input::placeholder{color:var(--tenue);opacity:1}
+
+/* Deslizador con pulgar grande: el área de toque no puede ser el riel */
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;
+  min-height:var(--toque);padding:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--borde)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:32px;height:32px;margin-top:-13px;border-radius:50%;background:var(--oro);
+  border:3px solid var(--fondo);box-shadow:var(--sombra)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--borde)}
+input[type=range]::-moz-range-thumb{width:32px;height:32px;border:3px solid var(--fondo);
+  border-radius:50%;background:var(--oro)}
+
+/* ---------- bloques ---------- */
+
+.tarjeta{
+  background:var(--fondo2);border:1.5px solid var(--borde);border-radius:var(--radio-grande);
+  padding:var(--e3);margin:var(--e2) 0;
+}
+.fila{display:flex;gap:var(--e2);align-items:center}
+.crece{flex:1}
+.tenue{color:var(--tenue)}
+.pie{font-size:var(--txt-pie)}
+.micro{font-size:var(--txt-micro);text-transform:uppercase;letter-spacing:.06em;color:var(--tenue)}
+.oro{color:var(--oro)} .verde{color:var(--verde)} .rojo{color:var(--rojo)}
+.oculto{display:none!important}
+
+.aviso{
+  padding:var(--e2) var(--e3);border-radius:12px;margin:var(--e2) 0;
+  background:color-mix(in srgb,var(--rojo) 18%,var(--fondo));
+  border:1.5px solid var(--rojo);color:var(--tinta);
+}
+
+/* Nunca depender solo del color: cada estado trae además un símbolo */
+.si::before{content:"✓ ";font-weight:700}
+.no::before{content:"✗ ";font-weight:700}
+
+/* Indicador de carga sobrio */
+.cargando{display:inline-block;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--borde);border-top-color:var(--oro);animation:girar .8s linear infinite;
+  vertical-align:-3px;margin-right:var(--e2)}
+
+/* ---------- animación ---------- */
+
+@keyframes girar{to{transform:rotate(360deg)}}
+@keyframes entrar{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.entra{animation:entrar .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes latir{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.late{animation:latir .45s ease}
+@keyframes voltear{from{transform:rotateY(80deg);opacity:.2}to{transform:none;opacity:1}}
+.voltea{animation:voltear .4s cubic-bezier(.2,.8,.2,1) both}
+
+/* Respeta el ajuste de movimiento reducido del sistema */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important}
+}

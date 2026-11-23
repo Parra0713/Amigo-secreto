@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "notas": "Editar este archivo cambia las preguntas sin tocar código. 'derivacion' nombra una función registrada en engine/pistas/derivaciones.js. {v} se reemplaza por la respuesta (o por el resultado de la derivación).",
+  "preguntas": [
+    {
+      "id": "cumple_mes",
+      "categoria": "cumpleanos",
+      "texto": "¿En qué mes cumples años?",
+      "tipo": "opcion",
+      "opciones": ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+      "peso": 1,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "semestre",   "texto": "Su cumpleaños cae en {v} del año." },
+        { "nivel": "medio",  "derivacion": "estacionDias", "texto": "Nació en un mes de {v} días." },
+        { "nivel": "fuerte", "derivacion": null,          "texto": "Su cumpleaños es en {v}." }
+      ]
+    },
+    {
+      "id": "comida",
+      "categoria": "gustos",
+      "texto": "¿Cuál es tu comida favorita?",
+      "tipo": "opcion_o_texto",
+      "opciones": ["bandeja paisa","sancocho","pizza","hamburguesa","sushi","ajiaco","pasta","arroz chino","tamales","empanadas","asado","otra"],
+      "peso": 1,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "categoriaComida", "texto": "Si lo invitan a comer, pide algo {v}." },
+        { "nivel": "medio",  "derivacion": "primeraLetra",    "texto": "Su comida favorita empieza por la letra {v}." },
+        { "nivel": "fuerte", "derivacion": null,              "texto": "Su comida favorita es {v}." }
+      ]
+    },
+    {
+      "id": "color",
+      "categoria": "gustos",
+      "texto": "¿Cuál es tu color favorito?",
+      "tipo": "opcion",
+      "opciones": ["rojo","azul","verde","amarillo","negro","blanco","morado","rosado","naranja","gris"],
+      "peso": 0.8,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "temperaturaColor", "texto": "Prefiere los colores {v}." },
+        { "nivel": "medio",  "derivacion": "grupoColor",       "texto": "Su color favorito está entre los {v}." },
+        { "nivel": "fuerte", "derivacion": null,               "texto": "Su color favorito es el {v}." }
+      ]
+    },
+    {
+      "id": "serie",
+      "categoria": "entretenimiento",
+      "texto": "¿Tu serie o película favorita?",
+      "tipo": "texto_corto",
+      "peso": 1.2,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "cantidadPalabras", "texto": "Su serie o película favorita tiene {v} en el título." },
+        { "nivel": "medio",  "derivacion": "iniciales",        "texto": "Su serie o película favorita empieza por {v}." },
+        { "nivel": "fuerte", "derivacion": null,               "texto": "Su serie o película favorita es {v}." }
+      ]
+    },
+    {
+      "id": "lugar",
+      "categoria": "viajes",
+      "texto": "Un lugar donde estuviste o al que te mueres por ir",
+      "tipo": "texto_corto",
+      "peso": 1.2,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "dentroOFueraDelPais", "texto": "El lugar con el que sueña queda {v}." },
+        { "nivel": "medio",  "derivacion": "iniciales",           "texto": "El lugar que mencionó empieza por {v}." },
+        { "nivel": "fuerte", "derivacion": null,                  "texto": "El lugar que mencionó es {v}." }
+      ]
+    },
+    {
+      "id": "mascota",
+      "categoria": "hogar",
+      "texto": "¿Tienes mascota? ¿Cuál?",
+      "tipo": "opcion",
+      "opciones": ["perro","gato","pájaro","pez","otra","ninguna"],
+      "peso": 1,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "tieneONo",  "texto": "En su casa {v} mascotas." },
+        { "nivel": "medio",  "derivacion": "patasMascota", "texto": "Si tiene mascota, es de las que {v}." },
+        { "nivel": "fuerte", "derivacion": null,         "texto": "Su mascota es un {v}." }
+      ]
+    },
+    {
+      "id": "hobby",
+      "categoria": "tiempo_libre",
+      "texto": "¿Qué haces cuando tienes tiempo libre?",
+      "tipo": "opcion_o_texto",
+      "opciones": ["ver series","leer","hacer deporte","cocinar","videojuegos","música","manualidades","salir a caminar","dormir","redes sociales","otra"],
+      "peso": 1,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "dentroOFuera", "texto": "Su plan favorito es {v}." },
+        { "nivel": "medio",  "derivacion": "primeraLetra", "texto": "Su pasatiempo empieza por la letra {v}." },
+        { "nivel": "fuerte", "derivacion": null,           "texto": "En su tiempo libre se dedica a {v}." }
+      ]
+    },
+    {
+      "id": "talento",
+      "categoria": "personalidad",
+      "texto": "Algo que se te da muy bien",
+      "tipo": "texto_corto",
+      "peso": 1.3,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "cantidadPalabras", "texto": "Lo que mejor hace se dice en {v}." },
+        { "nivel": "medio",  "derivacion": "primeraLetra",     "texto": "Su mayor talento empieza por la letra {v}." },
+        { "nivel": "fuerte", "derivacion": null,               "texto": "Dice que se le da muy bien {v}." }
+      ]
+    },
+    {
+      "id": "mania",
+      "categoria": "personalidad",
+      "texto": "Una manía o costumbre tuya que todos conocen",
+      "tipo": "texto_corto",
+      "peso": 1.5,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "cantidadPalabras", "texto": "Su manía se describe en {v}." },
+        { "nivel": "medio",  "derivacion": "primeraLetra",     "texto": "Su manía empieza por la letra {v}." },
+        { "nivel": "fuerte", "derivacion": null,               "texto": "Tiene la costumbre de {v}." }
+      ]
+    },
+    {
+      "id": "bebida",
+      "categoria": "gustos",
+      "texto": "¿Café, té, gaseosa o ninguna?",
+      "tipo": "opcion",
+      "opciones": ["café","té","gaseosa","jugo natural","agua","ninguna"],
+      "peso": 0.8,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "conOSinCafeina", "texto": "Toma bebidas {v}." },
+        { "nivel": "medio",  "derivacion": "primeraLetra",   "texto": "Su bebida empieza por la letra {v}." },
+        { "nivel": "fuerte", "derivacion": null,             "texto": "Lo suyo es {v}." }
+      ]
+    },
+    {
+      "id": "madrugador",
+      "categoria": "rutina",
+      "texto": "¿Madrugador o trasnochador?",
+      "tipo": "opcion",
+      "opciones": ["madrugador","trasnochador","depende del día"],
+      "peso": 0.7,
+      "plantillas": [
+        { "nivel": "vago",   "derivacion": "horarioVago", "texto": "Tiene un horario {v}." },
+        { "nivel": "medio",  "derivacion": null,          "texto": "Dice que es más bien {v}." },
+        { "nivel": "fuerte", "derivacion": null,          "texto": "Se declara {v} sin dudarlo." }
+      ]
+    },
+    {
+      "id": "recuerdo",
+      "categoria": "personal",
+      "texto": "Un recuerdo que compartes con la persona a la que le regalas (opcional)",
+      "tipo": "texto_libre",
+      "dirigidaAlReceptor": true,
+      "peso": 2,
+      "plantillas": [
+        { "nivel": "fuerte", "derivacion": null, "texto": "Dice que contigo recuerda: {v}" }
+      ]
+    }
+  ]
+}

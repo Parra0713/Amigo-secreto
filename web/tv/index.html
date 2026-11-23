@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es-CO" class="siempre-oscuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0f1a">
+<title>El Plan del Amigo Secreto — TV</title>
+<link rel="stylesheet" href="/shared/estilos.css">
+<style>
+  body{overflow:hidden}
+  .pantalla{height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding:2.5vh 3vw;gap:2vh}
+  .encabezado{display:flex;align-items:center;justify-content:space-between}
+  .titulo{font-size:3.2vw;letter-spacing:.02em}
+  .lema{font-size:1.4vw;color:var(--tenue)}
+  .reloj{font-size:5vw;font-weight:800;font-variant-numeric:tabular-nums}
+  .reloj.urgente{color:var(--rojo)}
+  .centro{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:center}
+  .columnaIzquierda{display:grid;grid-template-rows:auto auto auto;gap:1vh;align-content:center}
+  /* El personaje ocupa el tercio superior de su columna: no compite con el texto */
+  .grupierCaja{width:100%;height:34vh;min-height:200px}
+  .grupierCaja svg{width:auto;height:100%;display:block;margin-inline:auto}
+  .narracion{font-size:3.4vw;line-height:1.25;font-weight:700;text-wrap:balance}
+  .conexion{text-align:center}
+  .conexion svg{width:30vw;height:auto;background:#fff;padding:1.2vw;border-radius:1vw}
+  .url{font-size:2.2vw;font-weight:800;color:var(--oro);margin-top:1vh;word-break:break-all}
+  .marcador{display:grid;gap:1vh;max-height:70vh;overflow:hidden;align-content:start}
+  .j{display:flex;align-items:center;gap:1vw;font-size:2.2vw;background:var(--fondo2);
+     border:2px solid var(--borde);border-radius:1vw;padding:.8vh 1.2vw}
+  .j .fichas{margin-left:auto;font-weight:800;font-size:2.6vw;color:var(--oro);font-variant-numeric:tabular-nums}
+  .j.lider{border-color:var(--oro)}
+  .pie{font-size:1.4vw;color:var(--tenue);display:flex;justify-content:space-between}
+  .revelacion{text-align:center}
+  .revelacion .par{font-size:3.4vw;font-weight:800;margin:1vh 0}
+  .revelacion .pistas{display:grid;gap:1vh;font-size:1.4vw;text-align:left;margin:2vh auto}
+  .pista{background:var(--fondo2);border-left:8px solid var(--verde);border-radius:.8vw;padding:1vh 1.2vw}
+  .pista.falsa{border-left-color:var(--rojo)}
+  .etiqueta{font-size:1.1vw;color:var(--tenue);text-transform:uppercase;letter-spacing:.08em}
+</style>
+</head>
+<body class="degradado">
+<div class="pantalla">
+  <div class="encabezado">
+    <div>
+      <h1 class="titulo">El Plan del Amigo Secreto</h1>
+      <div class="lema">Las fichas no mienten, las personas sí</div>
+    </div>
+    <div class="fila">
+      <button id="btnExplicar" class="boton secundario oculto"
+        style="width:auto;padding:.8vh 1.4vw;font-size:1.3vw;margin:0">🎭 Explicar el juego</button>
+      <button id="btnVoz" class="boton secundario" aria-pressed="true"
+        style="width:auto;padding:.8vh 1.4vw;font-size:1.3vw;margin:0">🔊 Voz</button>
+      <div id="reloj" class="reloj" role="timer" aria-live="off"></div>
+    </div>
+  </div>
+
+  <div id="centro" class="centro">
+    <div class="columnaIzquierda">
+      <div id="grupierCaja" class="grupierCaja"></div>
+      <div id="narracion" class="narracion entra" role="status" aria-live="polite">Bienvenidos. Esta noche nadie sale igual a como entró.</div>
+      <div id="faseTexto" class="lema" style="margin-top:2vh"></div>
+    </div>
+    <div id="panelDerecho">
+      <div id="conexion" class="conexion">
+        <div id="qr"></div>
+        <div class="etiqueta">Escanea o entra a</div>
+        <div id="url" class="url">…</div>
+      </div>
+      <div id="marcador" class="marcador oculto"></div>
+    </div>
+  </div>
+
+  <div class="pie">
+    <div class="fila">
+      <span id="estadoRed" role="status" aria-live="polite">Conectando…</span>
+      <span id="estadoVoz" class="tenue"></span>
+    </div>
+    <div id="conteoJugadores"></div>
+  </div>
+</div>
+
+<script type="module">
+import { conectar } from '/shared/cliente.js';
+import { desbloquear, sonidos, silenciar, ambienteEncender, ambienteAgachar, auraEncender, auraApagar, golpe,
+         contexto, salida } from '/shared/audio.js';
+import { confeti } from '/shared/confeti.js';
+import { iniciarVoz, decir, silenciarVoz, configurarVoz, alHablar, vozActual, duracionEstimada,
+         usarVozNeural, hayVozNeural } from '/shared/narrador.js';
+import { crearReproductorVoz, vozNeuralDisponible } from '/shared/voz.js';
+import { crearIntro, GRUPIER_SVG } from './intro.js';
+import { crearGrupier3D } from './grupier3d.js';
+
+const $ = (id) => document.getElementById(id);
+let vozActiva = true;
+let intro = null;
+
+// Mientras el grupier habla, un sub-bajo le pone el peso que la voz no tiene.
+alHablar({
+  alEmpezarFrase: () => auraEncender(),
+  alTerminar: () => auraApagar()
+});
+
+// El navegador exige un gesto para el audio: el primer clic o tecla lo desbloquea.
+let vozNeural = null;
+
+const activarAudio = () => {
+  desbloquear();
+  ambienteEncender();
+  const estado = iniciarVoz();
+
+  // Voz neuronal del servidor: si está, se usa ella y se procesa en el navegador.
+  if (!vozNeural) {
+    vozNeuralDisponible().then((info) => {
+      if (!info.disponible) return;
+      vozNeural = crearReproductorVoz({
+        ctx: contexto(),
+        destino: salida(),
+        efectos: ajustesVoz,
+        alAgacharAmbiente: ambienteAgachar
+      });
+      usarVozNeural(vozNeural);
+      $('estadoVoz').textContent = `voz neuronal (${info.modelo || 'local'}) · grupier y explicaciones`;
+    });
+  }
+  if (motivo3D) $('estadoRed').textContent += ` · 3D apagado: ${motivo3D}`;
+  $('estadoVoz').textContent = !estado.disponible
+    ? 'sin voz en español — solo texto'
+    : estado.dosVoces
+      ? `grupier: ${estado.grupier} · explicaciones: ${estado.explicador}`
+      : `una sola voz (${estado.grupier}) para los dos personajes`;
+};
+addEventListener('click', activarAudio, { once: true });
+addEventListener('keydown', activarAudio, { once: true });
+
+// ---- el grupier: 3D si el PC puede, SVG si no ----
+const cajaGrupier = $('grupierCaja');
+let motivo3D = null;
+const modoSilueta = new URLSearchParams(location.search).has('silueta');
+let actor = null;
+try {
+  actor = crearGrupier3D(cajaGrupier, { silueta: modoSilueta });
+} catch (e) {
+  console.warn('El grupier 3D no pudo arrancar, se usa el respaldo plano:', e.message);
+  // Que no se caiga en silencio: si vuelve al dibujo plano, hay que poder ver por qué.
+  motivo3D = e.message;
+}
+if (!actor) {
+  // Sin WebGL: respaldo plano. La presentación nunca se queda sin personaje.
+  cajaGrupier.innerHTML = GRUPIER_SVG;
+  motivo3D ||= 'este navegador no dio contexto WebGL';
+  actor = {
+    disponible: false,
+    hablar: (v) => cajaGrupier.querySelector('.grupier')?.classList.toggle('hablando', v),
+    nivel: () => {},
+    enfatizar: () => {},
+    gesto: () => {},
+    reposo: () => {}
+  };
+}
+
+// La boca del personaje sigue a la voz, sea 3D o SVG.
+const gancharVoz = (alTerminarExtra) => alHablar({
+  alEmpezarFrase: () => { auraEncender(); actor.hablar(true); },
+  // Amplitud real del audio: así la boca y los ojos siguen la voz de verdad.
+  alNivel: (n) => actor.nivel(n),
+  alTerminar: () => { auraApagar(); actor.hablar(false); actor.nivel(0); alTerminarExtra?.(); }
+});
+gancharVoz();
+
+// Guion de la presentación y ajustes de voz, desde config/narrador.json
+const ajustesVoz = {};
+fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces }) => {
+  configurarVoz(voces);
+  Object.assign(ajustesVoz, voces);   // misma referencia: el reproductor ya la tiene
+  if (!pasos.length) return;
+  intro = crearIntro({
+    pasos,
+    // El grupier 3D entra a la presentación y actúa cada lámina.
+    personaje: actor,
+    montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
+    desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
+    hablar: (texto, { alTerminar, personaje }) => {
+      gancharVoz(alTerminar);
+      return decir(texto, { personaje });
+    },
+    duracion: duracionEstimada,
+    alCambiar: () => golpe(),
+    alFinal: () => {
+      auraApagar();
+      gancharVoz();                       // los ganchos vuelven al uso normal
+      $('btnExplicar').classList.remove('oculto');
+    }
+  });
+  $('btnExplicar').classList.remove('oculto');
+});
+
+function explicar() {
+  if (!intro || intro.estaAbierta()) return;
+  activarAudio();
+  $('btnExplicar').classList.add('oculto');
+  intro.abrir();
+}
+
+$('btnExplicar').onclick = (e) => { e.stopPropagation(); explicar(); };
+
+$('btnVoz').onclick = (e) => {
+  e.stopPropagation();
+  vozActiva = !vozActiva;
+  silenciarVoz(!vozActiva);
+  silenciar(!vozActiva);
+  if (!vozActiva) auraApagar();
+  $('btnVoz').textContent = vozActiva ? '🔊 Voz' : '🔇 Silencio';
+  $('btnVoz').setAttribute('aria-pressed', String(vozActiva));
+};
+
+fetch('/api/conexion').then((r) => r.json()).then(({ url, qr }) => {
+  $('qr').innerHTML = qr;
+  $('url').textContent = url.replace(/^http:\/\//, '');
+});
+
+const FASES = {
+  registro: 'Registro abierto — entren desde el celular',
+  ronda1: 'Ronda 1 · Compra de pistas',
+  ronda2: 'Ronda 2 · Trampa',
+  ronda3: 'Ronda 3 · Dilema',
+  ronda4: 'Ronda 4 · Apuesta final',
+  revelacion: 'Revelación',
+  fin: 'Fin del juego'
+};
+
+let faseAnterior = null;
+
+const cliente = conectar({
+  rol: 'tv',
+  alEstadoRed: (e) => { $('estadoRed').textContent = e === 'conectado' ? 'Conectado' : 'Reconectando…'; },
+  alMensaje(m) {
+    if (m.t === 'explicar') return explicar();
+
+    if (m.t === 'narrador') {
+      $('narracion').textContent = m.texto;
+      $('narracion').classList.remove('entra');
+      void $('narracion').offsetWidth;
+      $('narracion').classList.add('entra');
+      if (m.voz) decir(m.texto, { personaje: m.personaje || 'grupier' });
+    }
+
+    if (m.t === 'efecto') {
+      if (m.tipo === 'confeti') { confeti(); sonidos.fanfarria(); actor.enfatizar(); actor.gesto('objetivo'); }
+      if (m.tipo === 'redoble') { sonidos.redoble(); actor.enfatizar(); actor.gesto('revelacion'); }
+      if (m.tipo === 'fichas') (m.delta >= 0 ? sonidos.fichaSube : sonidos.fichaBaja)();
+      if (m.tipo === 'revelacion') mostrarRevelacion(m.publico);
+    }
+
+    if (m.t === 'publico') {
+      $('faseTexto').textContent = FASES[m.fase] || '';
+      $('conteoJugadores').textContent = m.fase === 'registro'
+        ? `${m.listos} de ${m.totalJugadores} listos`
+        : `${m.totalJugadores} jugadores`;
+
+      const enRegistro = m.fase === 'registro';
+      const enRevelacion = m.fase === 'revelacion' || m.fase === 'fin';
+      $('conexion').classList.toggle('oculto', !enRegistro);
+      $('marcador').classList.toggle('oculto', enRegistro || enRevelacion);
+      document.getElementById('revelacion')?.classList.toggle('oculto', !enRevelacion);
+      if (!enRegistro && !enRevelacion) pintarMarcador(m.marcador);
+      if (m.fase !== faseAnterior) {
+        faseAnterior = m.fase;
+        sonidos.revelar();
+        // El personaje acompaña el momento del juego, sin que nadie lo pida.
+        actor.gesto({ registro: 'reposo', ronda1: 'compra', ronda2: 'trampa',
+                      ronda3: 'dilema', ronda4: 'apuesta', revelacion: 'revelacion', fin: 'objetivo' }[m.fase] || 'reposo');
+      }
+
+      const r = m.cuentaRegresiva;
+      $('reloj').textContent = r == null ? '' : `${String(Math.floor(r / 60)).padStart(2, '0')}:${String(r % 60).padStart(2, '0')}`;
+      $('reloj').classList.toggle('urgente', r != null && r <= 10);
+      if (r != null && r > 0 && r <= 10) sonidos.tic();
+    }
+  }
+});
+
+function pintarMarcador(lista) {
+  $('marcador').innerHTML = lista.map((j, i) => `
+    <div class="j ${i === 0 ? 'lider' : ''}">
+      <span>${j.avatar || '🎁'}</span>
+      <span>${j.apodo}</span>
+      ${j.conectado ? '' : '<span class="tenue" style="font-size:1.2vw">(desconectado)</span>'}
+      <span class="fichas">${j.fichas}</span>
+    </div>`).join('');
+}
+
+function mostrarRevelacion(p) {
+  // Se reemplaza solo la columna derecha: la izquierda tiene al grupier y su lienzo.
+  $('conexion').classList.add('oculto');
+  $('marcador').classList.add('oculto');
+  let caja = document.getElementById('revelacion');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'revelacion';
+    caja.className = 'revelacion';
+    $('panelDerecho').appendChild(caja);
+  }
+  caja.classList.remove('oculto', 'entra');
+  void caja.offsetWidth;
+  caja.classList.add('entra');
+  caja.innerHTML = `
+    <div class="etiqueta">El amigo secreto de</div>
+    <div class="par">${p.receptor}</div>
+    <div class="etiqueta">era</div>
+    <div class="par oro">${p.amigoSecreto}</div>
+    <div style="font-size:2vw;margin-top:1vh" class="${p.acerto ? 'verde si' : 'rojo no'}">
+      ${p.acerto ? 'Acertó' : `Falló${p.apostoPor ? ` — apostó por ${p.apostoPor}` : ''}`}
+    </div>
+    <div class="pistas">
+      ${p.tarjetas.map((t) => `
+        <div class="pista ${t.falsa ? 'falsa' : ''}">
+          <div class="etiqueta">${t.nivel}${t.falsa ? ` · falsa, puesta por ${t.puestaPor}` : ''}${t.comprada ? ' · comprada' : ' · nunca la compró'}</div>
+          ${t.texto}
+        </div>`).join('')}
+    </div>`;
+  (p.acerto ? sonidos.acierto : sonidos.fallo)();
+  actor.enfatizar();
+}
+
+</script>
+</body>
+</html>

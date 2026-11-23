@@ -1,0 +1,278 @@
+{
+  "version": 1,
+  "notas": "Frases del grupier. {apodo} se reemplaza por el apodo público de un jugador; nunca se permite ninguna variable que revele parejas, trampas o respuestas. El motor elige al azar sin repetir la última usada por evento.",
+  "variablesPermitidas": [
+    "apodo",
+    "fichas",
+    "segundos",
+    "ronda"
+  ],
+  "eventos": {
+    "bienvenida": [
+      "Bienvenidos. Esta noche nadie sale igual a como entró.",
+      "Buenas noches, familia. Les recuerdo que todos trajeron un regalo… y una mentira.",
+      "Siéntense cómodos. Lo incómodo viene después."
+    ],
+    "registro_abierto": [
+      "Saquen el celular. Es la única vez en esta casa que los voy a dejar.",
+      "Escaneen el código. Lo que escriban ahí decide su destino.",
+      "Llenen el cuestionario con calma. O con mentiras. Es su problema."
+    ],
+    "registro_falta_gente": [
+      "Todavía faltan jugadores. Alguien está más ocupado que de costumbre.",
+      "Esperamos. La paciencia también se paga con fichas.",
+      "Faltan algunos. No voy a decir nombres… todavía."
+    ],
+    "inicio_ronda1": [
+      "Ronda uno: compra de pistas. Las fichas que gasten no vuelven.",
+      "Frente a ustedes hay tres sobres cerrados. Lo barato sirve poco, lo caro duele.",
+      "Primera ronda. Aquí se separa el curioso del cauteloso."
+    ],
+    "inicio_ronda2": [
+      "Ronda dos. A partir de ahora, no todo lo que lean es verdad.",
+      "Alguien en esta sala está a punto de mentir. Con mi ayuda.",
+      "Ronda de trampa. Una ficha compra una mentira muy bien hecha."
+    ],
+    "inicio_ronda3": [
+      "Ronda tres. Los emparejé al azar y ahora deben decidir: ayudar o aprovecharse.",
+      "Dilema. Dos personas, dos botones, ninguna conversación.",
+      "Aquí se ve quién es familia y quién es competencia."
+    ],
+    "inicio_ronda4": [
+      "Ronda final. Apuesten lo que crean que vale su certeza.",
+      "Llegó la hora. Un nombre y una cantidad. Nada más.",
+      "Última ronda. El que apuesta poco, poco se lleva."
+    ],
+    "cuenta_regresiva": [
+      "Quedan {segundos} segundos y alguien sigue dudando.",
+      "{segundos} segundos. Los indecisos pierden solos.",
+      "Se acaba el tiempo. El reloj no acepta sobornos."
+    ],
+    "trampa_colocada": [
+      "Acaba de aparecer una tarjeta nueva en un montón. No pregunten de dónde salió.",
+      "Algo se movió en esta mesa. Yo no vi nada.",
+      "Una mentira acaba de sentarse entre las verdades."
+    ],
+    "fichas_suben": [
+      "{apodo} suma. Por ahora.",
+      "Las fichas de {apodo} crecen. Disfrútelo.",
+      "Buen movimiento, {apodo}."
+    ],
+    "fichas_bajan": [
+      "{apodo} paga el precio de la curiosidad.",
+      "Esas fichas no vuelven, {apodo}.",
+      "{apodo} invirtió. Veremos en qué."
+    ],
+    "apuestas_bloqueadas": [
+      "Apuestas cerradas. Lo dicho, dicho queda.",
+      "Se acabó. Ya nadie cambia de opinión.",
+      "Cerramos. Las dudas ahora son gratis y también inútiles."
+    ],
+    "acierto": [
+      "{apodo} acertó. Alguien no supo disimular.",
+      "Correcto, {apodo}. Lo tenía claro desde el principio.",
+      "{apodo} leyó bien la mesa."
+    ],
+    "fallo": [
+      "{apodo} falló. Y el que lo engañó está en esta sala.",
+      "No era, {apodo}. Esas fichas ya tienen dueño nuevo.",
+      "Error, {apodo}. Las fichas no mienten, las personas sí."
+    ],
+    "revelacion_inicio": [
+      "Vamos a revelar. De abajo hacia arriba, como debe ser.",
+      "Empieza la parte en la que todo se entiende.",
+      "Ahora sí. Nombres, pistas y mentiras, en ese orden."
+    ],
+    "revelacion_pareja": [
+      "El amigo secreto de {apodo} es…",
+      "{apodo}, la persona que te tocó era…",
+      "Y detrás de ese regalo estaba…"
+    ],
+    "ganador": [
+      "{apodo} gana. Con fichas y con descaro.",
+      "El Plan salió bien para {apodo}.",
+      "Ganó {apodo}. Nadie diga que no estaba avisado."
+    ],
+    "empate": [
+      "Hay empate. Y el empate aquí no se queda así.",
+      "Dos personas con lo mismo. Eso se resuelve jugando.",
+      "Empate técnico. Prepárense para la relámpago."
+    ],
+    "jugador_desconectado": [
+      "Alguien se nos fue del juego. El tiempo sigue corriendo.",
+      "Una silla quedó vacía. La ronda no espera a nadie.",
+      "Se perdió una conexión. No una amistad, espero."
+    ],
+    "fin": [
+      "Se acabó. Entreguen los regalos y finjan sorpresa.",
+      "Hasta aquí llegó El Plan. Feliz Navidad, tramposos.",
+      "Fin del juego. Mañana todos vuelven a ser familia."
+    ]
+  },
+  "explicacion": {
+    "notas": "Guion de la presentación inicial. 'ilustracion' escoge la animación que acompaña en la TV (ver web/tv/intro.js). Editar este guion no requiere tocar código. 'voz' escoge quién lo dice: grupier (grave, dramático) o explicador (claro, didáctico).",
+    "pasos": [
+      {
+        "id": "saludo",
+        "ilustracion": "grupier",
+        "titulo": "Buenas noches",
+        "texto": "Buenas noches. Yo voy a ser el grupier de esta noche. Ustedes ya saben a quién le regalan. Lo que ninguno sabe es quién le regala a usted. Eso es lo que vamos a averiguar, y no va a ser gratis.",
+        "voz": "grupier"
+      },
+      {
+        "id": "objetivo",
+        "ilustracion": "objetivo",
+        "titulo": "El objetivo",
+        "texto": "Cada uno tiene que adivinar quién es su amigo secreto. Pero el juego no lo gana el que adivina. Lo gana el que termina con más fichas.",
+        "voz": "explicador"
+      },
+      {
+        "id": "fichas",
+        "ilustracion": "fichas",
+        "titulo": "Las fichas",
+        "texto": "Todos empiezan con diez fichas. Con fichas se compra información, se compran mentiras, y al final se apuesta. El que gasta sin pensar, llega pobre al final.",
+        "voz": "explicador"
+      },
+      {
+        "id": "monton",
+        "ilustracion": "monton",
+        "titulo": "Tu montón",
+        "texto": "Frente a cada uno hay tres tarjetas boca abajo. Son pistas sobre la persona que le regala a usted. Las escribí yo, con lo que cada uno contestó en el cuestionario.",
+        "voz": "explicador"
+      },
+      {
+        "id": "ronda1",
+        "ilustracion": "compra",
+        "titulo": "Ronda uno: compra",
+        "texto": "La tarjeta fácil cuesta una ficha y descarta poco. La media, dos. La difícil cuesta cuatro, y esa sí señala. Compre las que quiera. Solo usted las lee. Y las fichas que gaste, no vuelven.",
+        "voz": "explicador"
+      },
+      {
+        "id": "ronda2",
+        "ilustracion": "trampa",
+        "titulo": "Ronda dos: la trampa",
+        "texto": "Aquí se pone interesante. Por una sola ficha, usted puede meter una tarjeta falsa en el montón de otro. Yo la armo, con la respuesta real de un tercero, para que suene creíble y apunte a quien no es. La víctima nunca sabrá cuál es falsa, ni quién la puso.",
+        "voz": "grupier"
+      },
+      {
+        "id": "ronda3",
+        "ilustracion": "dilema",
+        "titulo": "Ronda tres: el dilema",
+        "texto": "Los voy a emparejar al azar. Cada pareja decide en secreto: cooperar, o guardar. Si los dos cooperan, ganan dos fichas y ven una pista real. Si uno coopera y el otro guarda, el que guardó se lleva tres y el otro se queda con las manos vacías. Si los dos guardan, no pasa nada. Piénsenlo bien: es su familia, pero también es su competencia.",
+        "voz": "explicador"
+      },
+      {
+        "id": "ronda4",
+        "ilustracion": "apuesta",
+        "titulo": "Ronda cuatro: la apuesta",
+        "texto": "Al final, cada uno escoge un nombre y apuesta. Si acierta, recupera la apuesta y gana otro tanto igual. Si falla, la pierde completa. El que apuesta poco, poco se lleva.",
+        "voz": "explicador"
+      },
+      {
+        "id": "fantasma",
+        "ilustracion": "fantasma",
+        "titulo": "El bono fantasma",
+        "texto": "Y escuchen esto con cuidado. Si la persona a la que usted le regala se equivoca al adivinar, usted gana tres fichas de regalo. Así que a usted le conviene que no lo descubran.",
+        "voz": "grupier"
+      },
+      {
+        "id": "cierre",
+        "ilustracion": "revelacion",
+        "titulo": "La revelación",
+        "texto": "Cuando todo termine, revelamos las parejas una por una, del que tiene menos fichas hasta el ganador. Ahí van a ver qué pistas eran verdad, cuáles las puse yo por encargo, y quién les mintió en la cara. Que empiece el plan.",
+        "voz": "grupier"
+      }
+    ]
+  },
+  "voces": {
+    "notas": "Dos personajes con voz propia. El grupier juega; el explicador explica. 'sintesis' es cómo lo genera el servidor; 'efectos' es cómo se procesa en el navegador. Truco clave del grupier: se sintetiza un poco RÁPIDO y se reproduce LENTO. Eso baja el tono y los formantes (la voz suena más grande y más oscura) sin que el habla se arrastre.",
+    "grupier": {
+      "rate": 0.88,
+      "pitch": 0.55,
+      "volume": 1,
+      "pausaFrase": 220,
+      "pausaPunto": 420,
+      "idiomas": [
+        "es-CO",
+        "es-MX",
+        "es-ES",
+        "es"
+      ],
+      "preferidas": [
+        "raul",
+        "pablo",
+        "jorge",
+        "diego",
+        "carlos"
+      ],
+      "sintesis": {
+        "velocidad": 1.1
+      },
+      "efectos": {
+        "notas": "Si en tu sala se entiende poco, sube 'velocidad' a 0.95 y baja 'sombra' y 'susurro'.",
+        "velocidad": 0.87,
+        "desafine": -16,
+        "retardoDoble": 0.024,
+        "nivelDoble": 0.42,
+        "apertura": 0.3,
+        "graves": 5.5,
+        "pecho": 2.5,
+        "presencia": -2,
+        "sibilancia": -5,
+        "saturacion": 0.3,
+        "preRetardo": 0.035,
+        "reverb": 0.3,
+        "eco": 0.16,
+        "ecoTiempo": 0.19,
+        "sombra": 0.13,
+        "susurro": 0.09,
+        "compresion": -22
+      }
+    },
+    "explicador": {
+      "rate": 1,
+      "pitch": 1.05,
+      "volume": 1,
+      "pausaFrase": 160,
+      "pausaPunto": 320,
+      "idiomas": [
+        "es-CO",
+        "es-MX",
+        "es-ES",
+        "es"
+      ],
+      "preferidas": [
+        "sabina",
+        "dalia",
+        "helena",
+        "laura",
+        "elvira",
+        "paulina"
+      ],
+      "sintesis": {
+        "velocidad": 1.0
+      },
+      "efectos": {
+        "notas": "Limpio a propósito: tiene que entenderse de una, con ruido en la sala.",
+        "velocidad": 1,
+        "desafine": 0,
+        "retardoDoble": 0,
+        "nivelDoble": 0,
+        "apertura": 0,
+        "graves": 1,
+        "pecho": 0,
+        "presencia": 2,
+        "sibilancia": -2,
+        "saturacion": 0,
+        "preRetardo": 0.012,
+        "reverb": 0.08,
+        "eco": 0,
+        "ecoTiempo": 0,
+        "sombra": 0,
+        "susurro": 0,
+        "compresion": -18
+      }
+    },
+    "auraActiva": true
+  }
+}

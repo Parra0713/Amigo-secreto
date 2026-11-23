@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escoger la voz del grupier</title>
+<style>
+  :root{color-scheme:dark}
+  body{font:17px/1.5 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;background:#0b0f1a;color:#f4f6fb;
+       margin:0;padding:24px;max-width:860px;margin-inline:auto}
+  h1{font-size:28px;margin:0 0 8px}
+  p{color:#a8b3cc}
+  .v{display:flex;gap:12px;align-items:center;border:1.5px solid #2a3350;border-radius:14px;
+     padding:12px;margin:8px 0;background:#131a2b}
+  .v.elegida{border-color:#f2c14e;border-width:2.5px}
+  .v .nombre{flex:1;font-weight:600}
+  .v .meta{color:#a8b3cc;font-size:13px}
+  button{font:inherit;min-height:44px;min-width:44px;border:0;border-radius:12px;padding:10px 16px;cursor:pointer}
+  .probar{background:#2a3350;color:#f4f6fb}
+  .usar{background:#f2c14e;color:#1b1405;font-weight:600}
+  .ctrl{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin:6px 0}
+  .aviso{background:#3a1f1f;border:1.5px solid #ff6b67;border-radius:12px;padding:12px 16px}
+  code{background:#0d1322;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<h1>Voz del grupier</h1>
+<p>Esta página lista las voces instaladas en <strong>este</strong> computador y las hace
+hablar con el mismo tono y ritmo que usa el juego. Escucha, escoge una y queda guardada
+para la pantalla de TV de este navegador.</p>
+
+<div id="aviso" class="aviso" style="display:none"></div>
+
+<div class="ctrl">
+  <label for="rate">Ritmo</label>
+  <input id="rate" type="range" min="0.6" max="1.2" step="0.01" value="0.88">
+  <output id="rateV">0.88</output>
+</div>
+<div class="ctrl">
+  <label for="pitch">Tono</label>
+  <input id="pitch" type="range" min="0" max="1.4" step="0.01" value="0.55">
+  <output id="pitchV">0.55</output>
+</div>
+<p class="meta">Tono bajo = voz más oscura. Si en la sala no se entiende, sube el tono a
+0.70 y el ritmo a 0.95. Cuando des con la combinación que te gusta, cópiala al bloque
+<code>voz</code> de <code>config/narrador.json</code> para que quede fija.</p>
+
+<div id="lista"></div>
+
+<script>
+const FRASE = 'Alguien en esta sala está mintiendo. Las fichas no mienten, las personas sí. Quedan diez segundos, y alguien sigue dudando.';
+const $ = (id) => document.getElementById(id);
+const elegida = () => localStorage.getItem('plan.voz');
+
+function trocear(texto){
+  return texto.replace(/…/g,'...').split(/(?<=[.!?:;,])\s+/).map(t=>t.trim()).filter(Boolean);
+}
+
+function hablar(voz){
+  speechSynthesis.cancel();
+  const rate = Number($('rate').value), pitch = Number($('pitch').value);
+  trocear(FRASE).forEach((trozo, i) => {
+    const f = new SpeechSynthesisUtterance(trozo);
+    f.voice = voz; f.lang = voz.lang; f.rate = rate; f.pitch = pitch;
+    setTimeout(() => speechSynthesis.speak(f), i * 10);
+  });
+}
+
+function pintar(){
+  const voces = speechSynthesis.getVoices();
+  const esp = voces.filter(v => (v.lang||'').toLowerCase().startsWith('es'));
+  const otras = voces.filter(v => !esp.includes(v));
+
+  if (!voces.length){
+    $('aviso').style.display = 'block';
+    $('aviso').textContent = 'Este navegador todavía no reporta voces. Espera un segundo y recarga la página.';
+    return;
+  }
+  if (!esp.length){
+    $('aviso').style.display = 'block';
+    $('aviso').innerHTML = 'Este computador <strong>no tiene ninguna voz en español</strong>. '
+      + 'El narrador va a funcionar, pero solo con texto en pantalla. Para instalar una: '
+      + 'Configuración &rarr; Hora e idioma &rarr; Idioma y región &rarr; agrega Español, '
+      + 'y en Opciones de idioma instala la Voz. Después reinicia el navegador.';
+  }
+
+  const fila = (v) => `
+    <div class="v ${v.name === elegida() ? 'elegida' : ''}">
+      <div class="nombre">${v.name}
+        <div class="meta">${v.lang} · ${v.localService ? 'local, funciona sin internet' : 'necesita internet'}${v.default ? ' · predeterminada' : ''}</div>
+      </div>
+      <button class="probar" data-probar="${v.name}">Escuchar</button>
+      <button class="usar" data-usar="${v.name}">Usar esta</button>
+    </div>`;
+
+  $('lista').innerHTML =
+    `<h2>Voces en español (${esp.length})</h2>${esp.map(fila).join('') || '<p>Ninguna.</p>'}`
+    + `<h2>Otras voces (${otras.length})</h2><p class="meta">Pueden leer español, pero con acento del idioma que les toque.</p>${otras.map(fila).join('')}`;
+}
+
+document.addEventListener('click', (e) => {
+  const voces = speechSynthesis.getVoices();
+  const probar = e.target.dataset?.probar;
+  const usar = e.target.dataset?.usar;
+  if (probar) hablar(voces.find(v => v.name === probar));
+  if (usar){
+    localStorage.setItem('plan.voz', usar);
+    pintar();
+    hablar(voces.find(v => v.name === usar));
+  }
+});
+for (const id of ['rate','pitch']) $(id).oninput = () => { $(id+'V').textContent = $(id).value; };
+
+speechSynthesis.onvoiceschanged = pintar;
+pintar();
+</script>
+</body>
+</html>

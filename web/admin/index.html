@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f6fa" media="(prefers-color-scheme: light)">
+<title>El Plan — grupier</title>
+<link rel="stylesheet" href="/shared/estilos.css">
+<style>
+  main{max-width:720px;margin:0 auto;padding:var(--e3)}
+  /* Retícula con separación de 8 y controles de 44 de alto como mínimo */
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--e2)}
+  .rejilla .boton{margin:0}
+  table{width:100%;border-collapse:collapse;font-size:var(--txt-secundario)}
+  caption{text-align:left;font-size:var(--txt-micro);text-transform:uppercase;
+          letter-spacing:.06em;color:var(--tenue);padding-bottom:var(--e1)}
+  th,td{text-align:left;padding:var(--e2);border-bottom:1px solid var(--borde)}
+  td{font-variant-numeric:tabular-nums}
+  .fase{font-size:var(--txt-grande);font-weight:700;color:var(--oro)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Grupier</h1>
+
+  <div id="puerta">
+    <p class="tenue">Este panel controla la partida. Pide el PIN de administrador.</p>
+    <p class="tenue pie">El juego avanza solo; desde aquí puedes adelantarlo, pausarlo o tomar el control.</p>
+    <label for="pin">PIN de administrador</label>
+    <input id="pin" type="password" inputmode="numeric" maxlength="8"
+           autocomplete="off" enterkeyhint="go" placeholder="4 dígitos">
+    <button id="entrar" class="boton">Entrar</button>
+    <div id="error" class="aviso oculto" role="alert"></div>
+  </div>
+
+  <div id="panel" class="oculto">
+    <div class="tarjeta">
+      <div class="fila">
+        <div class="crece">
+          <div class="fase" id="fase" role="status" aria-live="polite">—</div>
+          <div class="tenue pie" id="detalle"></div>
+        </div>
+        <div id="reloj" class="fase" role="timer" aria-live="off"></div>
+      </div>
+    </div>
+
+    <div id="errorPanel" class="aviso oculto" role="alert"></div>
+
+    <div class="rejilla">
+      <button class="boton secundario" data-accion="admin.abrirRegistro">Avisar registro</button>
+      <button class="boton secundario" data-accion="admin.explicar">Explicar el juego</button>
+      <button class="boton" data-accion="admin.iniciar">Iniciar partida</button>
+      <button class="boton secundario" data-accion="admin.siguiente">Siguiente ronda</button>
+      <button class="boton secundario" data-accion="admin.pausar">Pausar</button>
+      <button class="boton secundario" data-accion="admin.reanudar">Reanudar</button>
+      <button class="boton" data-accion="admin.revelar">Revelar siguiente</button>
+      <button class="boton secundario" id="btnAuto" data-accion="admin.automatico" aria-pressed="true">Piloto automático</button>
+    </div>
+
+    <h2 style="margin-top:1.5rem">Resumen anónimo</h2>
+    <p class="tenue">Cuántas pistas se armaron por montón. Aquí no se ve el contenido ni las parejas: ni usted debe saberlo.</p>
+    <table>
+      <caption>Resumen anónimo de montones</caption>
+      <thead><tr><th scope="col">Montón de</th><th scope="col">Pistas</th><th scope="col">Estado</th></tr></thead>
+      <tbody id="resumen"></tbody>
+    </table>
+
+    <h2 style="margin-top:1.5rem">Marcador</h2>
+    <table>
+      <caption>Marcador</caption>
+      <thead><tr><th scope="col">Jugador</th><th scope="col">Fichas</th><th scope="col">Conexión</th></tr></thead>
+      <tbody id="marcador"></tbody>
+    </table>
+
+    <div class="tarjeta" style="margin-top:var(--e5);border-color:var(--rojo)">
+      <strong>Empezar de cero</strong>
+      <p class="tenue">Archiva la partida actual y crea una nueva. Los jugadores tendrán que registrarse otra vez.</p>
+      <button class="boton destructivo" id="nueva">Nueva partida</button>
+      <div id="confirmaNueva" class="oculto" role="group" aria-label="Confirmar nueva partida">
+        <p class="tenue pie">Esto no se puede deshacer. La partida actual queda archivada en <code>data/</code>.</p>
+        <button class="boton destructivo" id="nuevaSi">Sí, archivar y empezar de cero</button>
+        <button class="boton secundario" id="nuevaNo">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { conectar } from '/shared/cliente.js';
+const $ = (id) => document.getElementById(id);
+let cliente = null;
+
+$('entrar').onclick = () => {
+  const pin = $('pin').value.trim();
+  cliente = conectar({
+    rol: 'admin',
+    alMensaje(m) {
+      if (m.t === 'error') {
+        const ERRORES = {
+          PIN_INCORRECTO: 'PIN incorrecto.',
+          FALTAN_JUGADORES: 'Faltan jugadores registrados y listos para empezar.',
+          YA_INICIADA: 'La partida ya está en curso.',
+          NO_AUTORIZADO: 'Este panel necesita el PIN de administrador.',
+          DEMASIADOS_INTENTOS: 'Demasiados intentos. Espera un momento.'
+        };
+        const caja = $('errorPanel').classList.contains('oculto') === false || !$('panel').classList.contains('oculto')
+          ? $('errorPanel') : $('error');
+        caja.textContent = ERRORES[m.codigo] || m.codigo;
+        caja.classList.remove('oculto');
+        setTimeout(() => caja.classList.add('oculto'), 6000);
+        return;
+      }
+      if (m.t === 'publico') {
+        $('puerta').classList.add('oculto');
+        $('panel').classList.remove('oculto');
+        $('fase').textContent = m.fase;
+        $('detalle').textContent = `${m.listos} de ${m.totalJugadores} listos · ${m.montonesIncompletos ?? 0} montones incompletos`
+          + (m.automatico ? (m.autoPendiente ? ' · automático: esperando para avanzar' : ' · automático: puesto') : ' · manual');
+        $('btnAuto').setAttribute('aria-pressed', String(Boolean(m.automatico)));
+        $('btnAuto').textContent = m.automatico ? '🤖 Automático puesto' : '✋ Manual';
+        $('reloj').textContent = m.cuentaRegresiva != null ? `${m.cuentaRegresiva}s` : '';
+        $('resumen').innerHTML = (m.resumen || []).map((r) => `
+          <tr><td>${r.apodo ?? '—'}</td><td>${r.cantidadPistas}</td>
+          <td class="${r.completo ? 'verde si' : 'rojo no'}">${r.completo ? 'completo' : (r.incidencias[0] || 'incompleto')}</td></tr>`).join('');
+        $('marcador').innerHTML = (m.marcador || []).map((j) => `
+          <tr><td>${j.avatar} ${j.apodo}</td><td>${j.fichas}</td>
+          <td class="${j.conectado ? 'verde si' : 'rojo no'}">${j.conectado ? 'en línea' : 'fuera'}</td></tr>`).join('');
+      }
+    }
+  });
+  cliente.identificar({ pin });
+};
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-accion]');
+  if (b && cliente) cliente.enviar({ t: b.dataset.accion });
+});
+// Confirmación de dos pasos dentro de la página: sin diálogos del navegador.
+$('nueva').onclick = () => {
+  $('nueva').classList.add('oculto');
+  $('confirmaNueva').classList.remove('oculto');
+  $('nuevaSi').focus();
+};
+$('nuevaNo').onclick = () => {
+  $('confirmaNueva').classList.add('oculto');
+  $('nueva').classList.remove('oculto');
+  $('nueva').focus();
+};
+$('nuevaSi').onclick = () => {
+  cliente?.enviar({ t: 'admin.nueva' });
+  $('confirmaNueva').classList.add('oculto');
+  $('nueva').classList.remove('oculto');
+};
+</script>
+</body>
+</html>

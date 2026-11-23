@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "app": { "nombre": "El Plan del Amigo Secreto", "lema": "Las fichas no mienten." },
+  "tv": {
+    "conectarse": "Escanea el código o entra a",
+    "esperando": "Esperando jugadores",
+    "marcador": "Marcador",
+    "fichas": "fichas"
+  },
+  "play": {
+    "entrar": "Entrar al juego",
+    "pinJugador": "Tu PIN de 4 dígitos",
+    "pinIncorrecto": "Ese PIN no es. Revisa e intenta otra vez.",
+    "cuestionarioTitulo": "Cuéntanos de ti",
+    "cuestionarioAyuda": "Puedes saltarte las que quieras. Necesitamos mínimo {min} respuestas.",
+    "prefieroNoResponder": "Prefiero no responder",
+    "parejaTitulo": "¿A quién le regalas?",
+    "parejaAyuda": "Nadie más va a ver esto hasta la revelación.",
+    "tarjetasTitulo": "¿Quieres escribir tus propias pistas?",
+    "tarjetasAyuda": "Opcional. Si escribes una, reemplaza a la automática de ese nivel.",
+    "comprarTitulo": "Tu montón",
+    "comprarAyuda": "Compra las pistas que quieras. Las fichas gastadas no vuelven.",
+    "trampaTitulo": "Pon una tarjeta falsa",
+    "trampaAyuda": "Cuesta 1 ficha. La víctima nunca sabrá que fuiste tú.",
+    "dilemaTitulo": "Cooperar o guardar",
+    "apuestaTitulo": "¿Quién es tu amigo secreto?",
+    "apuestaAyuda": "Apuesta entre 1 y todas tus fichas.",
+    "esperaTitulo": "Mira la TV",
+    "sinFichas": "No te quedan fichas suficientes."
+  },
+  "admin": {
+    "pin": "PIN de administrador",
+    "iniciar": "Iniciar partida",
+    "pausar": "Pausar",
+    "saltar": "Saltar ronda",
+    "resumen": "Resumen anónimo",
+    "montonesIncompletos": "Montones incompletos"
+  },
+  "errores": {
+    "faseIncorrecta": "Esa acción no va en este momento del juego.",
+    "fichasInsuficientes": "No te alcanzan las fichas.",
+    "trampaPropia": "No puedes ponerte una trampa a ti mismo.",
+    "limiteTrampas": "Ese montón ya tiene demasiadas tarjetas falsas.",
+    "apuestaInvalida": "La apuesta debe ser entre 1 y tus fichas.",
+    "demasiadosIntentos": "Demasiados intentos. Espera un momento."
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "variante": "clasica",
+  "fichasIniciales": 10,
+  "minimoJugadores": 2,
+  "precios": { "facil": 1, "media": 2, "dificil": 4 },
+  "rondasActivas": ["ronda1", "ronda2", "ronda3", "ronda4"],
+  "tiempos": {
+    "registroSegundos": 0,
+    "ronda1Segundos": 180,
+    "ronda2Segundos": 120,
+    "ronda3Segundos": 90,
+    "ronda4Segundos": 120,
+    "avisoFinalSegundos": 10
+  },
+  "cuestionario": {
+    "minimoRespuestas": 6,
+    "maxLargoTextoLibre": 120
+  },
+  "ronda2": {
+    "costoTrampa": 1,
+    "maxTrampasPorJugador": 1,
+    "maxFalsasPorMonton": 2,
+    "permitirTrampaPropia": false
+  },
+  "ronda3": {
+    "cooperarCooperar": 2,
+    "guardarContraCooperar": 3,
+    "cooperarContraGuardar": 0,
+    "guardarGuardar": 0,
+    "bonoImpar": 1
+  },
+  "ronda4": {
+    "montoMinimo": 1,
+    "multiplicadorAcierto": 2,
+    "bonoFantasma": 3
+  },
+  "automatico": {
+    "notas": "El juego se mueve solo. El grupier puede intervenir desde /admin en cualquier momento, y cada acción manual cancela el temporizador automático.",
+    "activo": true,
+    "iniciarAlEstarTodosListos": true,
+    "segundosAntesDeIniciar": 20,
+    "pausaEntreRondas": 6,
+    "segundosEntreRevelaciones": 14
+  },
+  "desempates": ["aciertoApuesta", "menosFichasGastadasEnPistas", "apuestaRelampago"],
+  "narrador": { "vozActiva": true, "idiomaPreferido": ["es-CO", "es-MX", "es-ES", "es"] },
+  "moderacion": { "filtroGroseriasActivo": true },
+  "admin": { "pin": "2468" },
+  "variantes": {
+    "corta": { "rondasActivas": ["ronda1", "ronda4"] },
+    "familiar": { "fichasIniciales": 15, "rondasActivas": ["ronda1", "ronda3", "ronda4"] },
+    "extrema": {
+      "precios": { "facil": 1, "media": 2, "dificil": 5 },
+      "ronda2": { "maxTrampasPorJugador": 2, "maxFalsasPorMonton": 2, "costoTrampa": 1, "permitirTrampaPropia": false }
+    }
+  }
+}
