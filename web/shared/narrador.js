@@ -183,7 +183,7 @@ function siguiente() {
   frase.pitch = config.pitch;
   frase.volume = config.volume;
 
-  frase.onstart = () => ganchos.alEmpezarFrase?.(trozo.texto);
+  frase.onstart = () => ganchos.alEmpezarFrase?.(trozo.texto);   // la voz del navegador no sabe cuánto dura
   frase.onend = () => setTimeout(siguiente, trozo.pausa);
   frase.onerror = () => setTimeout(siguiente, 60);
   speechSynthesis.speak(frase);
@@ -204,7 +204,7 @@ export function decir(texto, { interrumpir = true, personaje = 'grupier' } = {})
     hablando = true;
     reproductorNeural
       .reproducir(texto, personaje, {
-        alEmpezar: () => ganchos.alEmpezarFrase?.(texto),
+        alEmpezar: (duracion) => ganchos.alEmpezarFrase?.(texto, duracion),
         alNivel: (n) => ganchos.alNivel?.(n),
         alTerminar: () => { hablando = false; ganchos.alTerminar?.(); }
       })

@@ -10,6 +10,8 @@ y una apuesta final. El sorteo se hace aparte; esto solo maneja la revelación.
 - **Voz propia offline.** Dos personajes con voz neuronal (Kokoro), pre-renderizada antes
   de jugar y generada en un hilo aparte para no trabar la partida.
 - **El grupier explica cada ronda** en la TV antes de que empiece a correr el reloj.
+- **La explicación es un cortometraje**: tres personajes juegan una partida de mentiras y
+  cada regla se ve ocurrir antes de nombrarse. Hay versión completa y versión exprés.
 - Español de Colombia en toda la interfaz.
 
 👉 Si no eres técnico, lee **[docs/GUIA_ANFITRION.md](docs/GUIA_ANFITRION.md)**.

@@ -248,7 +248,7 @@ export function crearReproductorVoz({ ctx, destino, efectos = {}, alAgacharAmbie
 
     const ahora = ctx.currentTime + 0.03;
     for (const c of capas) c.fuente.start(ahora);
-    alEmpezar?.();
+    alEmpezar?.(buffer.duration);        // segundos exactos, no estimados
     medir();
     await fin;
     return true;

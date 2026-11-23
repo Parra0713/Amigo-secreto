@@ -80,6 +80,7 @@ export function registrarWebsocket(app, juego) {
           const acciones = {
             'admin.abrirRegistro': () => juego.abrirRegistro(),
             'admin.explicar': () => juego.explicar(),
+            'admin.explicarExpres': () => juego.explicar({ expres: true }),
             'admin.iniciar': () => juego.iniciarPartida(),
             'admin.siguiente': () => juego.siguienteRonda(),
             'admin.pausar': () => juego.pausar(),

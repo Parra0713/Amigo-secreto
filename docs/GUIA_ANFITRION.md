@@ -87,6 +87,8 @@ Desde ahí controlas todo:
 | **Siguiente ronda** | Pasa a la ronda que sigue sin esperar el reloj |
 | **Pausar / Reanudar** | Congela el reloj, por si hay que servir el almuerzo |
 | **Revelar siguiente** | En la revelación, destapa una pareja a la vez |
+| **Explicar el juego** | Pone el cortometraje de ~3 minutos en la TV |
+| **Explicación exprés** | La versión de un minuto, para los que ya saben jugar |
 | **Explicar rondas** | Deja o quita la explicación del grupier antes de cada ronda |
 | **Saltar explicación** | Corta la explicación en curso y arranca la ronda ya |
 | **Nueva partida** | Borra todo y empieza de cero |
@@ -94,6 +96,9 @@ Desde ahí controlas todo:
 En ese panel también ves un **resumen anónimo**: cuántas pistas se armaron por montón y
 si alguno quedó incompleto. **No ves el contenido de las pistas ni las parejas**: eso es
 a propósito, para que tú también puedas jugar.
+
+Durante el cortometraje, en el PC: **flechas** para saltar de capítulo, **barra
+espaciadora** para pausar, y cualquier otra tecla o un clic para salir de la explicación.
 
 ### 6. Cómo va la partida
 Antes de cada ronda, el grupier aparece en la TV y la explica en tres momentos: qué va a
@@ -135,6 +140,17 @@ En `config\reglas.json`, el bloque `variantes` trae tres listas ya armadas:
 - **extrema**: dos trampas por jugador y pista difícil a 5 fichas.
 
 Para usar una, copia sus valores al cuerpo principal del archivo.
+
+## Para saber si la explicación sirve
+
+Esto no se adivina: se mide. Antes de la reunión, pon el cortometraje a alguien que no
+conozca el juego —alguien de la casa sirve— y en seguida pásale
+**http://localhost:8080/laboratorio/comprension.html** en el celular o en el PC.
+
+Son cinco preguntas. **Si acierta cuatro, la explicación funciona.** Si falla dos o más,
+la página te dice exactamente qué no quedó claro: eso es lo que hay que contar mejor, no
+lo que hay que repetirle a la persona. Puedes pasárselo a varios y la página te va
+guardando el puntaje de cada uno.
 
 ## Para probar sin gente
 Con el PC prendido y la ventana negra cerrada, abre una ventana de comandos en la

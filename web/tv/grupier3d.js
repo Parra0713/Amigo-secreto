@@ -246,6 +246,64 @@ export function construirEscena(THREE, { silueta = false } = {}) {
   fantasma.visible = false;
   utileria.add(fantasma);
 
+  // ---------- los tres invitados del cortometraje ----------
+  /* Para explicar mostrando en vez de contando hacen falta jugadores en la mesa.
+     Son figuras propias y deliberadamente simples: banca, cuerpo troncocónico y
+     cabeza. No llevan color propio —la paleta son tres más un acento (§5.3)—, así
+     que a quien le toca se le marca con el oro: un anillo a sus pies y un
+     levantón corto. Se identifican por su puesto y por el nombre en el subtítulo. */
+  function crearInvitado(x, z, giro) {
+    const g = new THREE.Group();
+
+    const banca = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.06, 0.4), matHumo);
+    banca.position.y = 0.36;
+    const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.3, 0.62, 10), matManto);
+    cuerpo.position.y = 0.72;
+    const cabeza = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), matHumo);
+    cabeza.position.y = 1.14;
+    g.add(banca, cuerpo, cabeza);
+
+    // El anillo de oro: a quién le toca, visible desde el sofá.
+    const foco = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.018, 6, 24), matOro);
+    foco.rotation.x = Math.PI / 2;
+    foco.position.y = 0.03;
+    foco.visible = false;
+    g.add(foco);
+
+    // Su montón: tres cartas boca abajo, al borde de la mesa frente a él.
+    const cartasSuyas = [];
+    for (const [i, dx] of [-0.3, 0, 0.3].entries()) {
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.014, 0.38), matManto);
+      c.position.set(dx, 0.5, 0.52);
+      c.rotation.y = (i - 1) * 0.08;
+      c.visible = false;
+      g.add(c);
+      cartasSuyas.push(c);
+    }
+
+    // Y sus fichas, en pila corta.
+    const fichasSuyas = [];
+    for (let i = 0; i < 4; i++) {
+      const f = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.035, 16), matOro);
+      f.position.set(0.46, 0.5 + i * 0.038, 0.34);
+      f.visible = false;
+      g.add(f);
+      fichasSuyas.push(f);
+    }
+
+    g.position.set(x, -0.15, z);
+    g.rotation.y = giro;
+    g.visible = false;
+    escena.add(g);
+    return { grupo: g, cuerpo, cabeza, foco, cartas: cartasSuyas, fichas: fichasSuyas, base: g.position.clone() };
+  }
+
+  const invitados = [
+    crearInvitado(-1.45, 1.5, 0.42),   // izquierda
+    crearInvitado(0.1, 1.15, 0),       // centro, al fondo
+    crearInvitado(1.6, 1.5, -0.42)     // derecha
+  ];
+
   // ---------- luces (§5.1) ----------
   if (!silueta) {
     // Clave fría desde arriba-izquierda: es la que da forma.
@@ -270,7 +328,7 @@ export function construirEscena(THREE, { silueta = false } = {}) {
   return {
     escena, camara, camaraBase, miraBase,
     personaje, torso, capucha, boca, ojos, manto, casco,
-    llama, cartas, fichasPila, cartaFalsa, puertas, fantasma,
+    llama, cartas, fichasPila, cartaFalsa, puertas, fantasma, invitados, mesa,
     materiales: { matManto, matOscuro, matHumo, matOro, matRojo }
   };
 }
@@ -291,7 +349,7 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
 
   const {
     escena, camara, personaje, torso, capucha, boca, manto, casco,
-    llama, cartas, fichasPila, cartaFalsa, puertas, fantasma, materiales
+    llama, cartas, fichasPila, cartaFalsa, puertas, fantasma, invitados, materiales
   } = construirEscena(THREE, { silueta });
   const { matOro } = materiales;
 
@@ -354,6 +412,12 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
     fantasma.visible = false;
     for (const c of cartas) { c.rotation.x = 0; c.position.y = 0.01; }
   };
+
+  // El cortometraje mueve a los invitados y la utilería por su cuenta.
+  const puesta = crearPuesta({
+    piezas: { invitados, cartaFalsa, fantasma, puertas, fichasPila },
+    encuadre: (nombre) => ponerEncuadre(nombre)
+  });
 
   /** Pone en escena lo que el guion está contando en ese momento. */
   function gesto(nombre) {
@@ -440,6 +504,7 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
     }
 
     animarUtileria(t, dt);
+    puesta.actualizar(dt);        // las acciones del cortometraje
 
     // Cámara: siempre en movimiento suave hacia su encuadre.
     camara.position.lerp(posObjetivo, 1 - Math.pow(0.002, dt));
@@ -512,7 +577,10 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
     nivel(v) { nivelVoz = Math.max(0, Math.min(1, v || 0)); },
     enfatizar() { enfasis = 0.5; },
     gesto,
-    reposo() { gesto('reposo'); },
+    /** Acciones del cortometraje: "Pipe le mete una falsa a Tita". */
+    escena(nombre, opciones) { return puesta.accion(nombre, opciones); },
+    accionesDeEscena: puesta.acciones,
+    reposo() { puesta.limpiar(); gesto('reposo'); },
     redimensionar,
     destruir() {
       animando = false;

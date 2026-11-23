@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>¿Se entendió la explicación? — El Plan del Amigo Secreto</title>
+<link rel="stylesheet" href="/shared/estilos.css">
+<style>
+  main{max-width:720px;margin:0 auto;padding:var(--e4) var(--e3) var(--e6)}
+  .paso{display:flex;gap:var(--e2);margin:var(--e3) 0}
+  .paso div{flex:1;height:6px;border-radius:3px;background:var(--borde)}
+  .paso div.hecho{background:var(--oro)} .paso div.activo{background:var(--oro);opacity:.55}
+  .pregunta{font-size:var(--txt-grande);font-weight:700;line-height:1.25;margin:var(--e3) 0 var(--e2)}
+  .opciones{display:grid;gap:var(--e2);margin:var(--e3) 0}
+  .opcion{text-align:left;padding:var(--e3);border:2px solid var(--borde);
+          border-radius:var(--radio-grande);background:var(--fondo2);
+          font-size:var(--txt-cuerpo);line-height:1.3;width:100%;min-height:var(--toque)}
+  .opcion:hover{border-color:var(--oro)}
+  .opcion.bien{border-color:var(--verde);border-width:3px}
+  .opcion.mal{border-color:var(--rojo);border-width:3px}
+  .marcador{font-size:48px;font-weight:800;color:var(--oro);line-height:1}
+  .veredicto{border-left:5px solid var(--oro);padding-left:var(--e3);margin:var(--e3) 0}
+  .repaso{margin:var(--e3) 0}
+  .repaso li{margin-bottom:var(--e2)}
+  table{width:100%;border-collapse:collapse;font-size:var(--txt-secundario)}
+  th,td{text-align:left;padding:var(--e2);border-bottom:1px solid var(--borde)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  textarea{width:100%;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;
+           font-size:var(--txt-micro)}
+</style>
+</head>
+<body class="degradado">
+<main>
+  <h1>¿Se entendió la explicación?</h1>
+  <p class="tenue">Cinco preguntas, justo después de ver la explicación en la TV y
+  <strong>sin volver a verla</strong>. El listón es acertar cuatro de cinco. Si alguien falla dos
+  o más, el problema es de la explicación, no de la persona.</p>
+
+  <section id="antes">
+    <h2>Antes de empezar</h2>
+    <label for="quien">¿Quién va a contestar?</label>
+    <input id="quien" type="text" placeholder="Un nombre o un apodo" autocomplete="off">
+    <label for="version">¿Qué versión vio?</label>
+    <select id="version">
+      <option value="completa">La completa (unos 3 minutos)</option>
+      <option value="expres">La exprés (un minuto)</option>
+    </select>
+    <p class="micro tenue">No se guarda nada fuera de este navegador.</p>
+    <button class="boton" id="btnEmpezar">Empezar</button>
+  </section>
+
+  <section id="prueba" class="oculto">
+    <div class="paso" id="progreso" aria-hidden="true"></div>
+    <p class="micro tenue" id="cuenta"></p>
+    <p class="pregunta" id="pregunta"></p>
+    <div class="opciones" id="opciones"></div>
+  </section>
+
+  <section id="fin" class="oculto">
+    <p class="marcador" id="marcador"></p>
+    <div class="veredicto" id="veredicto"></div>
+    <div class="repaso" id="repaso"></div>
+    <button class="boton" id="btnOtro">Que conteste otra persona</button>
+    <h2>Resultados guardados</h2>
+    <table id="tabla"></table>
+    <p class="micro tenue">Copia esto si quieres analizarlo después:</p>
+    <textarea id="json" readonly aria-label="Resultados en JSON"></textarea>
+    <button class="boton secundario" id="btnCopiar">Copiar</button>
+    <button class="boton secundario" id="btnBorrar">Borrar los resultados</button>
+  </section>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const LLAVE = 'plan.comprension.v1';
+
+let preguntas = [];
+let respuestas = [];
+let i = 0;
+let quien = '';
+let version = 'completa';
+let sesiones = JSON.parse(localStorage.getItem(LLAVE) || '[]');
+
+const r = await fetch('/api/corto/comprension').then((x) => x.json()).catch(() => ({ preguntas: [] }));
+preguntas = r.preguntas || [];
+if (!preguntas.length) {
+  $('antes').innerHTML = '<p>No pude cargar las preguntas. ¿Está corriendo el servidor del juego?</p>';
+}
+
+/* Las opciones se muestran en orden distinto a cada persona: si siempre está
+   en el mismo lugar, se acierta por costumbre y la medición no vale. */
+const revolver = (lista) => lista
+  .map((v) => ({ v, k: Math.random() }))
+  .sort((a, b) => a.k - b.k)
+  .map(({ v }) => v);
+
+function pintarProgreso() {
+  $('progreso').innerHTML = preguntas.map((_, n) =>
+    `<div class="${n < i ? 'hecho' : n === i ? 'activo' : ''}"></div>`).join('');
+  $('cuenta').textContent = `Pregunta ${i + 1} de ${preguntas.length}`;
+}
+
+function mostrar() {
+  if (i >= preguntas.length) return terminar();
+  const p = preguntas[i];
+  pintarProgreso();
+  $('pregunta').textContent = p.pregunta;
+
+  const orden = revolver(p.opciones.map((texto, indice) => ({ texto, indice })));
+  $('opciones').innerHTML = '';
+  for (const opcion of orden) {
+    const b = document.createElement('button');
+    b.className = 'opcion';
+    b.textContent = opcion.texto;
+    b.onclick = () => {
+      respuestas.push({ id: p.id, elegida: opcion.indice, correcta: p.correcta,
+                        acierto: opcion.indice === p.correcta });
+      i++;
+      mostrar();            // sin decir si acertó: enseñar a mitad del test lo arruina
+    };
+    $('opciones').appendChild(b);
+  }
+}
+
+function terminar() {
+  const aciertos = respuestas.filter((x) => x.acierto).length;
+  sesiones.push({ quien, version, aciertos, total: preguntas.length,
+                  fecha: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                  detalle: respuestas });
+  localStorage.setItem(LLAVE, JSON.stringify(sesiones));
+
+  $('prueba').classList.add('oculto');
+  $('fin').classList.remove('oculto');
+  $('marcador').textContent = `${aciertos} de ${preguntas.length}`;
+
+  const pasa = aciertos >= 4;
+  $('veredicto').innerHTML = pasa
+    ? '<strong>La explicación funcionó.</strong> Esta persona puede sentarse a jugar sin que nadie le repita las reglas.'
+    : '<strong>La explicación no alcanzó.</strong> Mira abajo qué se le escapó: eso es lo que hay que contar mejor, no lo que hay que repetirle a ella.';
+
+  const fallos = respuestas.filter((x) => !x.acierto);
+  $('repaso').innerHTML = fallos.length
+    ? `<h2>Lo que no quedó claro</h2><ul>${fallos.map((x) => {
+        const p = preguntas.find((q) => q.id === x.id);
+        return `<li><strong>${p.pregunta}</strong><br>
+                Contestó: <em>${p.opciones[x.elegida]}</em><br>
+                Era: <em>${p.opciones[p.correcta]}</em></li>`;
+      }).join('')}</ul>`
+    : '<p>No falló ninguna.</p>';
+
+  pintarTabla();
+}
+
+function pintarTabla() {
+  const filas = sesiones.map((s) => `<tr><td>${s.quien || '—'}</td><td>${s.version}</td>
+    <td class="num">${s.aciertos}/${s.total}</td><td class="micro tenue">${s.fecha}</td></tr>`).join('');
+  const total = sesiones.length;
+  const pasaron = sesiones.filter((s) => s.aciertos >= 4).length;
+  $('tabla').innerHTML = `<tr><th>Quién</th><th>Versión</th><th>Aciertos</th><th>Cuándo</th></tr>${filas}` +
+    (total ? `<tr><td colspan="2"><strong>Pasaron el listón</strong></td>
+       <td class="num"><strong>${pasaron}/${total}</strong></td><td></td></tr>` : '');
+  $('json').value = JSON.stringify(sesiones, null, 1);
+}
+
+$('btnEmpezar').onclick = () => {
+  quien = $('quien').value.trim();
+  version = $('version').value;
+  respuestas = [];
+  i = 0;
+  $('antes').classList.add('oculto');
+  $('fin').classList.add('oculto');
+  $('prueba').classList.remove('oculto');
+  mostrar();
+};
+
+$('btnOtro').onclick = () => {
+  $('quien').value = '';
+  $('fin').classList.add('oculto');
+  $('antes').classList.remove('oculto');
+  $('quien').focus();
+};
+
+$('btnCopiar').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($('json').value);
+    $('btnCopiar').textContent = 'Copiado';
+    setTimeout(() => { $('btnCopiar').textContent = 'Copiar'; }, 1500);
+  } catch {
+    $('json').select();
+  }
+};
+
+$('btnBorrar').onclick = () => {
+  sesiones = [];
+  localStorage.removeItem(LLAVE);
+  pintarTabla();
+};
+
+pintarTabla();
+</script>
+</body>
+</html>

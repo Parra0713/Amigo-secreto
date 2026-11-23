@@ -87,6 +87,7 @@ import { iniciarVoz, decir, silenciarVoz, configurarVoz, alHablar, vozActual, du
          usarVozNeural, hayVozNeural } from '/shared/narrador.js';
 import { crearReproductorVoz, vozNeuralDisponible } from '/shared/voz.js';
 import { crearIntro, GRUPIER_SVG } from './intro.js';
+import { crearCorto } from './corto.js';
 import { crearGrupier3D } from './grupier3d.js';
 
 const $ = (id) => document.getElementById(id);
@@ -158,8 +159,8 @@ if (!actor) {
 }
 
 // La boca del personaje sigue a la voz, sea 3D o SVG.
-const gancharVoz = (alTerminarExtra) => alHablar({
-  alEmpezarFrase: () => { auraEncender(); actor.hablar(true); },
+const gancharVoz = (alTerminarExtra, alEmpezarExtra) => alHablar({
+  alEmpezarFrase: (texto, duracion) => { auraEncender(); actor.hablar(true); alEmpezarExtra?.(duracion); },
   // Amplitud real del audio: así la boca y los ojos siguen la voz de verdad.
   alNivel: (n) => actor.nivel(n),
   alTerminar: () => { auraApagar(); actor.hablar(false); actor.nivel(0); alTerminarExtra?.(); }
@@ -170,9 +171,34 @@ gancharVoz();
 const ajustesVoz = {};
 let guionRondas = {};
 let entradaRonda = null;      // la mini-presentación que abre cada ronda
+let corto = null;             // el cortometraje que explica el juego
 
 /** ¿Hay una explicación en pantalla? Entonces manda su voz, no la narración. */
-const explicando = () => Boolean(intro?.estaAbierta?.() || entradaRonda);
+const explicando = () => Boolean(corto?.estaAbierta?.() || intro?.estaAbierta?.() || entradaRonda);
+
+/* El cortometraje: la explicación del juego contada como una partida de
+   mentiras entre tres personajes. El guion está en config/corto.json. */
+fetch('/api/corto').then((r) => r.json()).then(({ capitulos }) => {
+  if (!capitulos?.length) return;
+  corto = crearCorto({
+    capitulos,
+    personaje: actor,
+    montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
+    desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
+    hablar: (texto, { alTerminar, alEmpezar, personaje }) => {
+      gancharVoz(alTerminar, alEmpezar);
+      return decir(texto, { personaje });
+    },
+    duracion: duracionEstimada,
+    alCambiar: () => golpe(),
+    alFinal: () => {
+      auraApagar();
+      gancharVoz();
+      $('btnExplicar').classList.remove('oculto');
+    }
+  });
+  $('btnExplicar').classList.remove('oculto');
+}).catch(() => {});
 
 fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces, rondas }) => {
   guionRondas = rondas || {};
@@ -231,11 +257,14 @@ function abrirEntradaRonda(fase, titulo, partes) {
   entradaRonda.abrir();
 }
 
-function explicar() {
-  if (!intro || intro.estaAbierta()) return;
+function explicar({ expres = false } = {}) {
+  if (explicando()) return;
   activarAudio();
   $('btnExplicar').classList.add('oculto');
-  intro.abrir();
+  // El cortometraje es la explicación; la presentación de láminas queda
+  // como respaldo si el guion del corto no cargó.
+  if (corto) return corto.abrir({ expres });
+  intro?.abrir();
 }
 
 $('btnExplicar').onclick = (e) => { e.stopPropagation(); explicar(); };
@@ -271,7 +300,7 @@ const cliente = conectar({
   rol: 'tv',
   alEstadoRed: (e) => { $('estadoRed').textContent = e === 'conectado' ? 'Conectado' : 'Reconectando…'; },
   alMensaje(m) {
-    if (m.t === 'explicar') return explicar();
+    if (m.t === 'explicar') return explicar({ expres: Boolean(m.expres) });
     if (m.t === 'entradaRonda') return abrirEntradaRonda(m.fase, m.titulo, m.entrada);
 
     if (m.t === 'narrador') {

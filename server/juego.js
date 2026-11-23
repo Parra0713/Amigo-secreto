@@ -26,6 +26,7 @@ export function crearJuego({ repositorio, log = console }) {
   const config = leerJson('../config/reglas.json');
   const cuestionario = leerJson('../config/cuestionario.json');
   const textosNarrador = leerJson('../config/narrador.json');
+  const corto = leerJson('../config/corto.json');
   const groserias = (config.moderacion.filtroGroseriasActivo ? leerJson('../config/groserias.json').palabras : []);
 
   const clientes = new Set();           // { enviar(msg), rol, jugadorId }
@@ -168,6 +169,15 @@ export function crearJuego({ repositorio, log = console }) {
       rondas: textosNarrador.rondas ?? {},
       voces: textosNarrador.voces ?? {}
     }),
+
+    /** Guion del cortometraje. Las respuestas del test no van a la TV. */
+    cortoPublico: () => ({
+      capitulos: corto.capitulos ?? [],
+      personajes: corto.personajes ?? []
+    }),
+
+    /** Preguntas de comprensión con su respuesta: las usa el laboratorio. */
+    comprension: () => corto.comprension ?? [],
 
     configVoz: textosNarrador.voces ?? {},
 
@@ -356,8 +366,9 @@ export function crearJuego({ repositorio, log = console }) {
     abrirRegistro() { contar('registro_abierto'); },
 
     /** Lanza la presentación en todas las pantallas de TV. */
-    explicar() {
-      clientes.forEach((c) => { if (c.rol !== 'play') c.enviar({ t: 'explicar' }); });
+    explicar(opciones = {}) {
+      const expres = Boolean(opciones.expres);
+      clientes.forEach((c) => { if (c.rol !== 'play') c.enviar({ t: 'explicar', expres }); });
       clientes.forEach((c) => { if (c.rol === 'play') c.enviar({ t: 'narrador', evento: 'explicacion', texto: 'Mira la TV: el grupier está explicando el juego.' }); });
       repositorio.anexarEvento({ tipo: 'explicacion' });
     }

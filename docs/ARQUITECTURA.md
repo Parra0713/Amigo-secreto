@@ -301,6 +301,30 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   anfitrión apaga las explicaciones, el juego sigue como antes; y si la TV se cuelga, un
   tope de 60 s (`segundosMaximosEntrada`) arranca la ronda sola. Se reutiliza la máquina
   de la presentación (personaje 3D, gestos, etiquetas, subtítulos) en vez de escribir otra.
+- **2026-11-23** — **La explicación pasa a ser un cortometraje.** Las diez láminas
+  explicaban reglas con un dibujo al lado; ahora tres personajes de mentiras —Tita, Nacho
+  y Pipe— juegan una partida en miniatura y **ninguna regla se nombra antes de verse
+  ocurrir**: Pipe paga una ficha y le mete una carta falsa a Tita, y recién entonces se
+  dice qué es la trampa. Decisiones que esto obligó a tomar:
+  · El guion es datos (`config/corto.json`): capítulos, pasos, y por cada paso la acción
+    que la escena debe ejecutar. Se puede reescribir sin tocar código.
+  · La puesta en escena es un motor de interpolaciones aparte (`web/tv/puesta.js`), sin
+    THREE adentro: recibe las piezas ya construidas y las mueve. Por eso se puede probar
+    en Node con piezas de mentiras, y por eso las pruebas verifican que la carta falsa
+    sale de donde está Pipe y llega a donde está Tita, no solo que "se animó algo".
+  · Los acentos caen en su palabra usando la **duración real del audio** (`buffer.duration`
+    viaja desde `web/shared/voz.js` hasta el corto) repartida por posición de palabra.
+    No es alineación fonética —eso exigiría otro modelo— y queda dicho que es una
+    aproximación: con el audio pre-renderizado cae lo bastante cerca.
+  · Dos versiones del mismo guion: completa (~3 min) y exprés (~1 min, un paso por
+    capítulo con texto propio, no el mismo recortado).
+  · Los tres invitados no tienen color propio: la paleta son tres más un acento (§5.3),
+    así que a quien le toca se le marca con el oro.
+- **2026-11-23** — **La explicación se mide, no se opina**: `/laboratorio/comprension.html`
+  hace cinco preguntas justo después de ver el corto, con las opciones en orden distinto
+  para cada persona y sin decir si acertó hasta el final (corregir a mitad del test
+  enseña, y entonces ya no se mide). El listón es 4 de 5; si alguien falla dos, lo que hay
+  que arreglar es el guion. Las respuestas correctas no se sirven a la TV.
 - **2026-11-23** — **El tutorial pasa a la voz que ganó a ciegas.** El explicador tenía
   `ef_dora` por diseño, sin evidencia; las cuatro pruebas del laboratorio se corrieron con
   `em_santa`, también en el papel del explicador y con música encima. Ahora los dos

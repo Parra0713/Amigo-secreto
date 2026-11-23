@@ -1,0 +1,444 @@
+{
+  "notas": "Guion del cortometraje que explica el juego mostrándolo. No se explica una regla sin que pase en la mesa. Tres jugadores de mentiras —Tita, Nacho y Pipe— hacen una partida en miniatura. 'accion' es lo que hace la escena (ver web/tv/puesta.js); 'acentos' marca la palabra en la que algo tiene que ocurrir; 'expres' lo incluye en la versión corta. Los textos están escritos para decirse, no para leerse: los puntos suspensivos son respiraciones de verdad.",
+  "personajes": [
+    "Tita",
+    "Nacho",
+    "Pipe"
+  ],
+  "capitulos": [
+    {
+      "id": "quienes",
+      "titulo": "Tres personas y una pregunta",
+      "pasos": [
+        {
+          "id": "quienes-1",
+          "voz": "grupier",
+          "texto": "Esta es Tita. Este es Nacho. Y este es Pipe. Los tres ya saben a quién le van a dar regalo… eso lo decidió el sorteo. Lo que ninguno sabe es quién se lo va a dar a él.",
+          "accion": {
+            "nombre": "mesa"
+          },
+          "etiquetas": [
+            "Tita",
+            "Nacho",
+            "Pipe"
+          ],
+          "acentos": [
+            {
+              "palabra": "Tita",
+              "hacer": "marcar",
+              "quien": "tita"
+            },
+            {
+              "palabra": "Nacho",
+              "hacer": "marcar",
+              "quien": "nacho"
+            },
+            {
+              "palabra": "Pipe",
+              "hacer": "marcar",
+              "quien": "pipe"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Tita, Nacho y Pipe. Cada uno sabe a quién le regala… pero no quién le regala a él. Eso es lo que hay que averiguar."
+        },
+        {
+          "id": "quienes-2",
+          "voz": "explicador",
+          "texto": "Eso es lo único que hay que averiguar: quién te regala a ti. Una sola pregunta, toda la noche.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "¿Quién me regala?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fichas",
+      "titulo": "Las fichas",
+      "pasos": [
+        {
+          "id": "fichas-1",
+          "voz": "explicador",
+          "texto": "Cada uno arranca con diez fichas. Las fichas son dos cosas al mismo tiempo: son la plata con la que se compra información… y son el puntaje.",
+          "accion": {
+            "nombre": "monton",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "10 fichas",
+            "plata y puntaje"
+          ],
+          "acentos": [
+            {
+              "palabra": "puntaje",
+              "hacer": "enfatizar"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Arrancan con diez fichas. Con fichas se compra información… y con fichas se gana: gana el que termine con más."
+        },
+        {
+          "id": "fichas-2",
+          "voz": "grupier",
+          "texto": "Así que oigan bien esto. El juego no lo gana el que adivina. Lo gana el que termina con más fichas. Adivinar ayuda… pero no alcanza.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "nacho"
+          },
+          "etiquetas": [
+            "Gana el que tiene más fichas"
+          ],
+          "acentos": [
+            {
+              "palabra": "fichas",
+              "hacer": "enfatizar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compra",
+      "titulo": "Ronda uno: comprar una pista",
+      "pasos": [
+        {
+          "id": "compra-1",
+          "voz": "explicador",
+          "texto": "Frente a Tita hay tres cartas boca abajo. Son pistas sobre la persona que le regala a ella… escritas con lo que esa persona contestó en el cuestionario.",
+          "accion": {
+            "nombre": "monton",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "3 cartas",
+            "pistas reales"
+          ]
+        },
+        {
+          "id": "compra-2",
+          "voz": "explicador",
+          "texto": "Tita paga una ficha… y voltea la primera. Dice: le gusta el fútbol. Eso no es mucho, pero ya descarta a medio mundo. La fácil cuesta una, la media dos, y la difícil cuatro… esa sí señala a alguien.",
+          "accion": {
+            "nombre": "comprar",
+            "quien": "tita",
+            "cual": 0
+          },
+          "etiquetas": [
+            "1 · 2 · 4 fichas"
+          ],
+          "acentos": [
+            {
+              "palabra": "voltea",
+              "hacer": "enfatizar"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Tita paga una ficha y voltea una pista. La lee ella sola… y la ficha no vuelve."
+        },
+        {
+          "id": "compra-3",
+          "voz": "grupier",
+          "texto": "Esa carta la leyó ella sola. Nadie más la vio. Y la ficha que pagó… no vuelve.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "Solo la lees tú",
+            "Las fichas no vuelven"
+          ],
+          "acentos": [
+            {
+              "palabra": "vuelve",
+              "hacer": "enfatizar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trampa",
+      "titulo": "Ronda dos: la carta falsa",
+      "pasos": [
+        {
+          "id": "trampa-1",
+          "voz": "grupier",
+          "texto": "Ahora Pipe hace algo feo. Paga una ficha… y me pide una carta falsa para el montón de Tita.",
+          "accion": {
+            "nombre": "trampa",
+            "de": "pipe",
+            "a": "tita"
+          },
+          "etiquetas": [
+            "1 ficha",
+            "una mentira"
+          ],
+          "acentos": [
+            {
+              "palabra": "falsa",
+              "hacer": "enfatizar"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Pipe paga una ficha y le mete una carta falsa a Tita. Creíble, y apuntando a quien no es. Ella no sabrá cuál es… ni quién la puso."
+        },
+        {
+          "id": "trampa-2",
+          "voz": "explicador",
+          "texto": "La mentira no la invento yo de la nada: la armo con la respuesta verdadera de otra persona. Por eso suena creíble… y apunta a quien no es.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "Verdad de otro",
+            "apunta mal"
+          ]
+        },
+        {
+          "id": "trampa-3",
+          "voz": "grupier",
+          "texto": "Tita ahora tiene cuatro cartas y una es mentira. No va a saber cuál… ni quién se la puso. Y tampoco va a saber si le pusieron una, o ninguna.",
+          "accion": {
+            "nombre": "monton",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "No sabes cuál",
+            "ni quién"
+          ],
+          "acentos": [
+            {
+              "palabra": "cuál",
+              "hacer": "enfatizar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dilema",
+      "titulo": "Ronda tres: cooperar o guardar",
+      "pasos": [
+        {
+          "id": "dilema-1",
+          "voz": "explicador",
+          "texto": "Los empareja el azar. A Tita le toca con Nacho. Cada uno decide en secreto, sin hablar: cooperar… o guardar.",
+          "accion": {
+            "nombre": "dilema",
+            "pareja": [
+              "tita",
+              "nacho"
+            ],
+            "eleccion": [
+              "cooperar"
+            ]
+          },
+          "etiquetas": [
+            "Cooperar",
+            "Guardar"
+          ],
+          "expres": true,
+          "textoExpres": "Luego los empareja el azar: cooperar o guardar, en secreto. Cooperar paga poco y seguro; guardar paga más… si el otro confía."
+        },
+        {
+          "id": "dilema-2",
+          "voz": "explicador",
+          "texto": "Si los dos cooperan, ganan dos fichas cada uno y ven una pista de verdad. Si uno coopera y el otro guarda, el que guardó se lleva tres… y el otro, nada. Si los dos guardan, no pasa nada.",
+          "accion": {
+            "nombre": "dilema",
+            "pareja": [
+              "nacho",
+              "tita"
+            ],
+            "eleccion": [
+              "guardar"
+            ]
+          },
+          "etiquetas": [
+            "+2 y +2",
+            "3 y 0",
+            "0 y 0"
+          ],
+          "acentos": [
+            {
+              "palabra": "guardó",
+              "hacer": "enfatizar"
+            }
+          ]
+        },
+        {
+          "id": "dilema-3",
+          "voz": "grupier",
+          "texto": "Nacho guardó. Tita cooperó. Así es la cosa: es su familia… pero también es su competencia.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "nacho"
+          },
+          "etiquetas": [
+            "Familia y competencia"
+          ],
+          "acentos": [
+            {
+              "palabra": "competencia",
+              "hacer": "enfatizar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apuesta",
+      "titulo": "Ronda cuatro: la apuesta",
+      "pasos": [
+        {
+          "id": "apuesta-1",
+          "voz": "explicador",
+          "texto": "Al final, cada uno escribe un nombre y pone fichas encima. Tita cree que es Nacho… y apuesta tres.",
+          "accion": {
+            "nombre": "apuesta",
+            "quien": "tita",
+            "hacia": "nacho"
+          },
+          "etiquetas": [
+            "Un nombre",
+            "y tus fichas"
+          ],
+          "expres": true,
+          "textoExpres": "Al final cada uno apuesta fichas a un nombre. Si acierta, las dobla. Si falla, las pierde."
+        },
+        {
+          "id": "apuesta-2",
+          "voz": "explicador",
+          "texto": "Si acierta, recupera sus tres y gana otras tres. Si falla, las pierde completas. El que apuesta poquito… poquito se lleva.",
+          "accion": {
+            "nombre": "marcar",
+            "quien": "tita"
+          },
+          "etiquetas": [
+            "Acierta: doble",
+            "Falla: la pierde"
+          ],
+          "acentos": [
+            {
+              "palabra": "completas",
+              "hacer": "enfatizar"
+            }
+          ]
+        },
+        {
+          "id": "apuesta-3",
+          "voz": "grupier",
+          "texto": "Y les dejo lo mejor. Si la persona a la que usted le regala se equivoca… usted gana tres fichas de regalo. Léalo otra vez, despacio: a usted le conviene que no lo descubran.",
+          "accion": {
+            "nombre": "bono",
+            "quien": "pipe"
+          },
+          "etiquetas": [
+            "+3 si no te descubren"
+          ],
+          "acentos": [
+            {
+              "palabra": "descubran",
+              "hacer": "enfatizar"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Y si la persona a la que usted le regala se equivoca, usted gana tres. Le conviene que no lo descubran."
+        }
+      ]
+    },
+    {
+      "id": "cierre",
+      "titulo": "La revelación",
+      "pasos": [
+        {
+          "id": "cierre-1",
+          "voz": "grupier",
+          "texto": "Cuando se acabe, destapamos todo: del que menos fichas tiene… hasta el ganador. Ahí van a ver cuáles pistas eran verdad, cuáles las puse yo por encargo… y quién les mintió en la cara.",
+          "accion": {
+            "nombre": "revelacion"
+          },
+          "etiquetas": [
+            "Del último al primero"
+          ]
+        },
+        {
+          "id": "cierre-2",
+          "voz": "grupier",
+          "texto": "Tita, Nacho y Pipe ya se pueden ir. Ahora juegan ustedes. Que empiece el plan.",
+          "accion": {
+            "nombre": "quitarMesa"
+          },
+          "etiquetas": [
+            "Que empiece el plan"
+          ],
+          "acentos": [
+            {
+              "palabra": "ustedes",
+              "hacer": "enfatizar"
+            }
+          ],
+          "expres": true,
+          "textoExpres": "Después destapamos todo, del último al ganador. Ahora juegan ustedes. Que empiece el plan."
+        }
+      ]
+    }
+  ],
+  "comprension": [
+    {
+      "id": "c1",
+      "pregunta": "¿Qué tiene que averiguar cada uno?",
+      "opciones": [
+        "A quién le regalo yo",
+        "Quién me regala a mí",
+        "Quién tiene más fichas"
+      ],
+      "correcta": 1
+    },
+    {
+      "id": "c2",
+      "pregunta": "¿Quién gana el juego?",
+      "opciones": [
+        "El que adivina a su amigo secreto",
+        "El que termina con más fichas",
+        "El que compra más pistas"
+      ],
+      "correcta": 1
+    },
+    {
+      "id": "c3",
+      "pregunta": "Compras una pista. ¿Qué pasa con esa ficha?",
+      "opciones": [
+        "Se devuelve si la pista era falsa",
+        "No vuelve",
+        "La paga el que puso la pista"
+      ],
+      "correcta": 1
+    },
+    {
+      "id": "c4",
+      "pregunta": "Otro jugador te mete una carta falsa en el montón. ¿Qué sabes de ella?",
+      "opciones": [
+        "Nada: ni cuál es, ni quién la puso",
+        "Que es la última carta del montón",
+        "Que viene marcada en rojo"
+      ],
+      "correcta": 0
+    },
+    {
+      "id": "c5",
+      "pregunta": "¿Por qué te conviene que no te descubran?",
+      "opciones": [
+        "Porque te devuelven la apuesta",
+        "Porque ganas tres fichas si tu amigo secreto se equivoca",
+        "Porque puedes volver a apostar"
+      ],
+      "correcta": 1
+    }
+  ]
+}

@@ -18,6 +18,8 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | El grupier explica cada ronda antes de que corra el reloj | `config/narrador.json` (`rondas`), `server/juego.js` | `tests/entradas.test.js` |
 | El tutorial usa la voz probada (`em_santa` en los dos personajes) | `config/narrador.json` | pruebas 3 y 4 del laboratorio |
 | Las láminas no pasan antes de poderse leer, y nada habla encima | `web/tv/intro.js`, `web/tv/index.html` | `tests/entradas.test.js` |
+| La explicación es un cortometraje: 7 capítulos, 18 pasos, versión exprés | `config/corto.json`, `web/tv/corto.js`, `web/tv/puesta.js` | `tests/corto.test.js` (17 pruebas) |
+| Instrumento para medir si se entendió (listón: 4 de 5) | `/laboratorio/comprension.html` | pendiente de correr con personas |
 
 ---
 
@@ -26,7 +28,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | | |
 |---|---|
 | **Fases del plan original** | Las 6, completas |
-| **Pruebas automáticas** | **122, todas en verde** (~6 s) |
+| **Pruebas automáticas** | **143, todas en verde** (~6 s) |
 | **Partida de extremo a extremo** | ✅ con 2, 4, 5, 6, 8, 10 y 15 jugadores virtuales |
 | **Modo automático sin tocar el panel** | ✅ arranca, juega y revela solo |
 | **Fugas de información secreta** | ✅ ninguna, verificado por jugador |

@@ -66,6 +66,15 @@ app.get('/api/explicacion', async () => juego.explicacionPublica());
 
 app.get('/api/voz/estado', async () => ({ ...vozNeural.estado(), motivo: vozNeural.motivo }));
 
+/** Guion del cortometraje que explica el juego. Sin las respuestas del test. */
+app.get('/api/corto', async () => {
+  const { capitulos = [], personajes = [] } = juego.cortoPublico();
+  return { capitulos, personajes };
+});
+
+/** Preguntas de comprensión, para medir si la explicación se entendió. */
+app.get('/api/corto/comprension', async () => ({ preguntas: juego.comprension() }));
+
 /** Audio de una frase. Devuelve 404 si la voz neuronal no está: el cliente cae al navegador. */
 app.get('/api/voz', async (peticion, respuesta) => {
   if (!vozNeural.disponible) return respuesta.code(404).send({ error: 'SIN_VOZ_NEURAL' });

@@ -16,6 +16,7 @@ const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const tomas = Math.max(1, Math.min(4, Number(process.argv[2]) || 2));
 
 const narrador = JSON.parse(readFileSync(join(raiz, 'config/narrador.json'), 'utf8'));
+const corto = JSON.parse(readFileSync(join(raiz, 'config/corto.json'), 'utf8'));
 
 /** Todas las frases que se pueden saber de antemano. */
 function frasesFijas() {
@@ -34,6 +35,13 @@ function frasesFijas() {
   }
   for (const ronda of Object.values(narrador.rondas || {})) {
     for (const parte of Object.values(ronda.entrada || {})) agregar(parte.texto ?? parte, parte.voz || 'grupier');
+  }
+  // El cortometraje: la versión completa y la exprés, que son textos distintos.
+  for (const capitulo of corto.capitulos || []) {
+    for (const paso of capitulo.pasos || []) {
+      agregar(paso.texto, paso.voz || 'explicador');
+      if (paso.textoExpres) agregar(paso.textoExpres, paso.voz || 'explicador');
+    }
   }
   return frases;
 }
