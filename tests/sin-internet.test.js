@@ -80,3 +80,12 @@ test('el juego no trae archivos de audio: los sonidos se sintetizan en el navega
   const js = readFileSync(join(raiz, 'web/shared/audio.js'), 'utf8');
   assert.ok(js.includes('AudioContext'));
 });
+
+test('las dependencias no se quedan en versiones con vulnerabilidad conocida', () => {
+  const paquete = JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8'));
+  // @fastify/static <= 10.1.8 permitía salirse de la carpeta servida. El
+  // servidor corre en el WiFi de la casa con data/ al lado: no es teórico.
+  const estatico = paquete.dependencies['@fastify/static'];
+  const menor = Number(estatico.replace(/[^0-9.]/g, '').split('.')[0]);
+  assert.ok(menor >= 10, `@fastify/static ${estatico} tiene la ruta transitable arreglada en la 10.1.12`);
+});

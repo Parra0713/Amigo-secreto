@@ -271,3 +271,34 @@ test('mientras genera voz en segundo plano, el servidor sigue atendiendo', async
   assert.ok(tardo < 2500, `el servidor tardó ${tardo} ms en contestar un ping`);
   s.cortar();
 });
+
+test('nadie en el WiFi puede sacarle archivos al servidor', async (t) => {
+  /* El servidor sirve una carpeta estática en la red de la casa, y al lado de
+     esa carpeta viven las respuestas del cuestionario y las parejas del
+     sorteo. Una ruta que se salga de web/ deja de ser un detalle técnico y
+     pasa a ser la lista de quién le regala a quién. */
+  const datos = mkdtempSync(join(tmpdir(), 'recon7-'));
+  const servidor = await levantar({ puerto: 8217, datos });
+  t.after(async () => { await apagar(servidor); rmSync(datos, { recursive: true, force: true }); });
+
+  const intentos = [
+    '/../config/reglas.json',
+    '/../../config/reglas.json',
+    '/%2e%2e/config/reglas.json',
+    '/..%2fconfig/reglas.json',
+    '/%2e%2e%2f%2e%2e%2fpackage.json',
+    '/tv/../../config/reglas.json'
+  ];
+  for (const ruta of intentos) {
+    const r = await fetch(`${servidor.base}${ruta}`);
+    const cuerpo = await r.text();
+    assert.ok(r.status >= 400, `${ruta} respondió ${r.status}`);
+    assert.ok(!cuerpo.includes('minimoJugadores'), `${ruta} entregó la configuración`);
+    assert.ok(!cuerpo.includes('plan-amigo-secreto'), `${ruta} entregó package.json`);
+  }
+
+  // Y lo que sí tiene que servir, sigue sirviendo.
+  for (const ruta of ['/tv/', '/play/', '/shared/estilos.css', '/tv/puesta.js']) {
+    assert.equal((await fetch(`${servidor.base}${ruta}`)).status, 200, `${ruta} dejó de servirse`);
+  }
+});

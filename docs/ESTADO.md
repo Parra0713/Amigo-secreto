@@ -29,7 +29,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | | |
 |---|---|
 | **Fases del plan original** | Las 6, completas |
-| **Pruebas automáticas** | **159, todas en verde** (~67 s; `npm run test:rapido` deja fuera las de extremo a extremo y tarda 6 s) |
+| **Pruebas automáticas** | **161, todas en verde** (~67 s; `npm run test:rapido` deja fuera las de extremo a extremo y tarda 6 s) |
 | **Partida de extremo a extremo** | ✅ con 2, 4, 5, 6, 8, 10 y 15 jugadores virtuales |
 | **Modo automático sin tocar el panel** | ✅ arranca, juega y revela solo |
 | **Fugas de información secreta** | ✅ ninguna, verificado por jugador |

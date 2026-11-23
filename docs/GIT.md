@@ -36,6 +36,15 @@ Una línea de asunto en imperativo y sin punto final (`Agrega…`, `Corrige…`,
 y un cuerpo que explique **por qué**, no qué archivos cambiaron —eso ya lo dice el diff—.
 Si el cambio nace de un error observado, se describe el síntoma.
 
+## Dependencias
+
+`npm audit` se mira en serio, aunque sean cuatro paquetes: el servidor corre en el WiFi
+de la casa y sirve una carpeta estática con `data/` al lado. El 23 de noviembre,
+`@fastify/static` 8.3.0 tenía una ruta transitable —podía entregarse cualquier archivo
+fuera de `web/`, incluidas las parejas del sorteo— y se subió a la 10.1.12.
+`tests/reconexion.test.js` intenta seis rutas de escape contra el servidor real y
+`tests/sin-internet.test.js` no deja volver a bajar la versión.
+
 ## Ramas y versiones
 
 - `main` siempre arranca y pasa las pruebas.

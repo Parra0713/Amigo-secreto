@@ -1,3 +1,8 @@
+# Por defecto, texto normalizado a LF dentro del repositorio. Sin esta línea,
+# Git avisa en cada `git add` que va a cambiar los finales de línea de los
+# archivos sin extensión conocida (LICENSE, .gitignore, .editorconfig).
+* text=auto eol=lf
+
 # Los .bat tienen que llegar con finales de línea de Windows: con LF,
 # cmd.exe rompe los bloques y la ventana se cierra sin mensaje.
 *.bat text eol=crlf

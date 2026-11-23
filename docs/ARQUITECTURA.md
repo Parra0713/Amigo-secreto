@@ -320,6 +320,13 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   `onopen` del socket viejo le mandaba el saludo al socket nuevo, que todavía estaba
   conectando («Still in CONNECTING state»). Cada conexión guarda ahora su propio socket
   y comprueba que siga siendo la vigente.
+- **2026-11-23** — **`@fastify/static` sube de 8.3.0 a 10.1.12 por una ruta transitable.**
+  Las versiones hasta la 10.1.8 permitían pedir archivos fuera de la carpeta servida. En
+  un servidor de internet sería grave; aquí, con `data/` al lado de `web/` y el servidor
+  abierto al WiFi de la casa, lo que se filtra es quién le regala a quién. La 10 es un
+  salto de mayor, así que se verificó: 159 pruebas en verde, partida simulada completa y
+  las páginas sirviéndose igual. Quedan dos pruebas nuevas: seis rutas de escape contra
+  el servidor real, y un tope que no deja volver a bajar la versión.
 - **2026-11-23** — **La animación 3D llevaba congelada desde el principio.** El bucle
   pedía `reloj.getElapsedTime()` y en la línea siguiente `reloj.getDelta()`; como
   `getElapsedTime()` de `THREE.Clock` llama por dentro a `getDelta()`, el segundo
