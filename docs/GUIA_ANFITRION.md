@@ -18,7 +18,24 @@ administrador** → te pide confirmar → listo.
 Esto abre **solo** el puerto 8080 y **solo** para redes privadas (tu casa). No expone
 nada a internet.
 
-### 3. Primera prueba
+### 3. Preparar las voces (recomendado)
+
+Doble clic en **`descargar-voz.bat`**, y cuando termine, en una ventana de comandos
+dentro de la carpeta:
+
+```
+node tools/descargar-voz.mjs kokoro
+npm run voces
+```
+
+Lo primero baja la voz buena (unos 350 MB, una sola vez). Lo segundo graba de antemano
+todas las frases del narrador, con dos versiones de cada una para que no suene repetitivo.
+Tarda unos minutos y solo hay que hacerlo una vez; puedes dejarlo corriendo mientras
+haces otra cosa.
+
+Si te saltas este paso el juego funciona igual, con las voces de Windows.
+
+### 4. Primera prueba
 Doble clic en **`iniciar.bat`**. La primera vez descarga lo que necesita (unos 30
 segundos). Cuando veas que se abre el navegador con la pantalla de la TV, ya funciona.
 Cierra la ventana negra para apagarlo.

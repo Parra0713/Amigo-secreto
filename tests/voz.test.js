@@ -37,31 +37,32 @@ test('la voz neuronal es dependencia opcional, no obligatoria', () => {
   assert.ok(paquete.optionalDependencies['sherpa-onnx-node'], 'la neuronal va aparte');
 });
 
-test('el grupier suena más grande que el explicador, y es configurable', () => {
+test('los dos personajes siguen siendo distinguibles, aunque la cadena se podó', () => {
   const { voces } = JSON.parse(leer('config/narrador.json'));
   const g = voces.grupier.efectos, e = voces.explicador.efectos;
 
-  assert.ok(g.velocidad < e.velocidad, 'se reproduce más lento: tono y formantes abajo');
-  assert.ok(g.reverb > e.reverb && g.preRetardo > e.preRetardo, 'más sala, y más grande');
-  assert.ok(g.graves > e.graves && g.pecho > e.pecho, 'más cuerpo');
-  assert.ok(g.sombra > 0 && g.susurro > 0, 'sombra y susurro son suyos');
-  assert.equal(e.sombra, 0, 'el explicador tiene que entenderse, no imponer');
+  // La diferencia ya no la hace el procesamiento sino la voz del modelo:
+  // son dos voces distintas de Kokoro, elegidas por escucha a ciegas.
+  assert.notEqual(voces.grupier.neural.sid, voces.explicador.neural.sid);
+  assert.notEqual(voces.grupier.neural.voz, voces.explicador.neural.voz);
+
+  // Y queda una diferencia de tono y de espacio, mucho más leve que antes.
+  assert.ok(g.velocidad < e.velocidad, 'el grupier sigue algo más lento y grave');
+  assert.ok(g.graves > e.graves, 'y con algo más de cuerpo');
+  assert.ok(g.reverb > e.reverb, 'y con algo más de sala');
   assert.ok(g.sibilancia < 0 && e.sibilancia < 0, 'los sintetizadores sisean: hay que bajarlo');
 });
 
-test('el tono baja sin arrastrar el habla: se sintetiza rápido y se reproduce lento', () => {
+test('la poda de efectos está documentada con la evidencia que la motivó', () => {
   const { voces } = JSON.parse(leer('config/narrador.json'));
-  const sintesis = voces.grupier.sintesis.velocidad;
-  const reproduccion = voces.grupier.efectos.velocidad;
-  assert.ok(sintesis > 1, 'el servidor lo genera acelerado');
-  assert.ok(reproduccion < 1, 'y el navegador lo reproduce lento');
-  const neto = sintesis * reproduccion;
-  assert.ok(neto > 0.9 && neto < 1.05, `la velocidad neta del habla queda natural (${neto.toFixed(2)})`);
-  // Y el servidor tiene que estar leyendo ese valor, no uno fijo.
-  assert.match(leer('server/voz-neural.js'), /sintesis\?\.velocidad/);
+  const notas = `${voces.notas} ${voces.grupier.efectos.notas}`;
+  assert.match(notas, /ciegas/, 'debe decir por qué se podó');
+  // Lo que se quitó, se quitó del todo: no quedan restos a medias.
+  for (const campo of ['sombra', 'susurro', 'saturacion', 'eco', 'nivelDoble']) {
+    assert.equal(voces.grupier.efectos[campo], 0, `${campo} debe quedar en cero`);
+  }
 });
-
-test('la cadena del grupier tiene las capas que la hacen sonar a personaje', () => {
+test('la cadena de efectos sigue existiendo, por si hay que volver a subirla', () => {
   const voz = leer('web/shared/voz.js');
   for (const pieza of ['createDynamicsCompressor', 'createConvolver', 'createWaveShaper',
                        'createDelay', 'createStereoPanner', 'detune']) {
@@ -100,4 +101,61 @@ test('si el modelo está instalado, genera audio en español', { skip: !existsSy
   assert.ok(archivo && existsSync(archivo));
   const cabecera = readFileSync(archivo).subarray(0, 4).toString();
   assert.equal(cabecera, 'RIFF', 'debe ser un WAV válido');
+});
+
+test('el banco pre-renderizado guarda varias tomas y no repite la última', async () => {
+  const voz = crearVozNeural({
+    carpetaModelos: join(raiz, 'modelos'),
+    carpetaCache: join(raiz, 'data/voz'),
+    config: JSON.parse(leer('config/narrador.json')).voces,
+    log: { info: () => {}, warn: () => {} }
+  });
+  if (!voz.disponible) return;   // en un PC sin modelo, esta prueba no aplica
+
+  const frase = 'Prueba del banco de voz, dos tomas.';
+  await voz.prerenderizar([{ texto: frase, personaje: 'grupier' }], { tomas: 2 });
+
+  const servidas = new Set();
+  let previa = null;
+  for (let i = 0; i < 6; i++) {
+    const ruta = await voz.sintetizar(frase, 'grupier');
+    assert.ok(ruta && existsSync(ruta));
+    assert.notEqual(ruta, previa, 'no puede sonar dos veces seguidas la misma toma');
+    servidas.add(ruta);
+    previa = ruta;
+  }
+  assert.equal(servidas.size, 2, 'debe alternar entre las dos tomas');
+});
+
+test('cambiar de motor invalida el banco viejo en vez de servir audio equivocado', () => {
+  const fuente = leer('server/voz-neural.js');
+  // La clave del banco incluye motor y voz: si cambian, las rutas cambian.
+  assert.match(fuente, /\$\{v\.motor\}:\$\{v\.sid\}/);
+  assert.match(fuente, /`\$\{personaje\}-\$\{v\.motor\}-/);
+});
+
+test('el identificador de voz se ajusta al motor que realmente se usa', () => {
+  // Piper tiene una sola voz; pasarle el id de una voz de Kokoro es un error.
+  assert.match(leer('server/voz-neural.js'), /const sid = usado === 'kokoro' \? voz\.sid : 0/);
+});
+
+test('las voces se eligieron por escucha a ciegas, y queda registrado', () => {
+  const { voces } = JSON.parse(leer('config/narrador.json'));
+  assert.equal(voces.grupier.neural.motor, 'kokoro');
+  assert.equal(voces.explicador.neural.motor, 'kokoro');
+  assert.notEqual(voces.grupier.neural.sid, voces.explicador.neural.sid, 'dos voces distintas');
+  // La cadena de efectos quedó podada tras empatar contra la voz cruda.
+  assert.equal(voces.grupier.efectos.sombra, 0);
+  assert.equal(voces.grupier.efectos.susurro, 0);
+  assert.equal(voces.grupier.efectos.saturacion, 0);
+  assert.ok(voces.grupier.efectos.reverb <= 0.15, 'queda apenas un toque de sala');
+});
+
+test('el pre-renderizador solo toma frases que se pueden saber de antemano', () => {
+  const fuente = leer('tools/prerenderizar.mjs');
+  assert.match(fuente, /\\\{\[a-zA-Z\]\+\\\}/, 'descarta las frases con variables');
+  assert.match(fuente, /frasesConApodo|explicacion/);
+  // Y las que nombran jugadores se generan al registrarse.
+  assert.match(leer('server/index.js'), /alRegistrarJugador/);
+  assert.match(leer('server/juego.js'), /frasesConApodo/);
 });

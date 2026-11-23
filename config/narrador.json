@@ -185,7 +185,7 @@
     ]
   },
   "voces": {
-    "notas": "Dos personajes con voz propia. El grupier juega; el explicador explica. 'sintesis' es cómo lo genera el servidor; 'efectos' es cómo se procesa en el navegador. Truco clave del grupier: se sintetiza un poco RÁPIDO y se reproduce LENTO. Eso baja el tono y los formantes (la voz suena más grande y más oscura) sin que el habla se arrastre.",
+    "notas": "Dos personajes con voz propia. 'neural' dice con qué motor y qué voz se genera (decidido por escucha a ciegas: Kokoro ganó 6-0 sobre Piper). 'efectos' es el procesamiento en el navegador: se podó a casi nada porque en la prueba a ciegas la cadena completa empató 3-3 contra la voz cruda, es decir, no aportaba naturalidad. 'sintesis' solo aplica al motor rápido de respaldo.",
     "grupier": {
       "rate": 0.88,
       "pitch": 0.55,
@@ -209,24 +209,30 @@
         "velocidad": 1.1
       },
       "efectos": {
-        "notas": "Si en tu sala se entiende poco, sube 'velocidad' a 0.95 y baja 'sombra' y 'susurro'.",
-        "velocidad": 0.87,
-        "desafine": -16,
-        "retardoDoble": 0.024,
-        "nivelDoble": 0.42,
-        "apertura": 0.3,
-        "graves": 5.5,
-        "pecho": 2.5,
-        "presencia": -2,
-        "sibilancia": -5,
-        "saturacion": 0.3,
-        "preRetardo": 0.035,
-        "reverb": 0.3,
-        "eco": 0.16,
-        "ecoTiempo": 0.19,
-        "sombra": 0.13,
-        "susurro": 0.09,
-        "compresion": -22
+        "notas": "Podado tras la prueba a ciegas del 23-11-2026: la cadena completa no ganó ni una sola comparación contra la voz cruda. Queda un toque de cuerpo y de sala. Si quieres recuperar el personaje oscuro, sube sombra a 0.13 y velocidad a 0.87 y vuelve a comparar.",
+        "velocidad": 0.94,
+        "desafine": 0,
+        "retardoDoble": 0,
+        "nivelDoble": 0,
+        "apertura": 0,
+        "graves": 3,
+        "pecho": 1,
+        "presencia": -1,
+        "sibilancia": -3,
+        "saturacion": 0,
+        "preRetardo": 0.02,
+        "reverb": 0.12,
+        "eco": 0,
+        "ecoTiempo": 0,
+        "sombra": 0,
+        "susurro": 0,
+        "compresion": -20
+      },
+      "neural": {
+        "motor": "kokoro",
+        "sid": 53,
+        "voz": "em_santa",
+        "velocidad": 0.97
       }
     },
     "explicador": {
@@ -261,16 +267,22 @@
         "apertura": 0,
         "graves": 1,
         "pecho": 0,
-        "presencia": 2,
+        "presencia": 1.5,
         "sibilancia": -2,
         "saturacion": 0,
         "preRetardo": 0.012,
-        "reverb": 0.08,
+        "reverb": 0.06,
         "eco": 0,
         "ecoTiempo": 0,
         "sombra": 0,
         "susurro": 0,
         "compresion": -18
+      },
+      "neural": {
+        "motor": "kokoro",
+        "sid": 51,
+        "voz": "ef_dora",
+        "velocidad": 1.0
       }
     },
     "auraActiva": true

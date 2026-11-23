@@ -15,19 +15,31 @@ const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CARPETA = join(raiz, 'modelos');
 
 const VOCES = {
+  kokoro: {
+    nombre: 'kokoro-multi-lang-v1_0',
+    descripcion: 'Kokoro-82M v1.0, Apache-2.0 (~350 MB) — la mejor, pero lenta: se usa para pre-renderizar',
+    url: 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2'
+  },
   alta: {
     nombre: 'vits-piper-es_MX-claude-high',
-    descripcion: 'es_MX, calidad alta, Apache-2.0 (~65 MB) — la recomendada',
+    descripcion: 'Piper es_MX, Apache-2.0 (~65 MB) — rápida, sirve para frases imprevistas',
     url: 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_MX-claude-high.tar.bz2'
   },
   liviana: {
     nombre: 'vits-piper-es_MX-ald-medium',
-    descripcion: 'es_MX, calidad media, Unlicense (~25 MB) — para PCs lentos',
+    descripcion: 'Piper es_MX, calidad media, Unlicense (~25 MB) — para PCs lentos',
     url: 'https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_MX-ald-medium.tar.bz2'
   }
 };
 
-const elegida = VOCES[process.argv[2] === 'liviana' ? 'liviana' : 'alta'];
+const cual = process.argv[2];
+if (cual && !VOCES[cual]) {
+  console.log(`\nNo conozco la voz "${cual}". Las que hay:\n`);
+  for (const [clave, v] of Object.entries(VOCES)) console.log(`  ${clave.padEnd(9)} ${v.descripcion}`);
+  console.log('\nUso: node tools/descargar-voz.mjs [kokoro|alta|liviana]\n');
+  process.exit(1);
+}
+const elegida = VOCES[cual || 'alta'];
 
 function descargar(url, destino, intentos = 5) {
   return new Promise((resolve, reject) => {

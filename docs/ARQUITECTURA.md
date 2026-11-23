@@ -273,3 +273,18 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   opcional. Motivo: tras la primera prueba el anfitrión reportó voces robóticas y una
   explicación plana, y varias restricciones de la Etapa 1 (pensadas para llegar rápido)
   limitaban la solución. Encargo de la Etapa 2 en `docs/PROMPT_ETAPA_2.md`.
+- **2026-11-23** — **Kokoro reemplaza a Piper como motor de voz**, por escucha a ciegas
+  (6-0 entre dos rondas, incluida la prueba con música encima). Como corre a poco más de
+  tiempo real, se invierte el enfoque: `tools/prerenderizar.mjs` genera el banco completo
+  antes de jugar, con dos tomas por frase; en la partida solo se reproduce (5 ms contra
+  2,7 s). Piper queda como motor rápido para frases imprevistas. La clave del banco
+  incluye motor y voz, así que cambiar de modelo invalida el banco viejo en vez de servir
+  audio equivocado.
+- **2026-11-23** — **La cadena de efectos se podó.** Empató 3-3 contra la voz cruda en la
+  prueba a ciegas: no aportaba naturalidad. Se quitan voz-sombra, susurro, saturación,
+  eco y doblaje; queda un toque de cuerpo y de sala. El código permanece para poder
+  volver a subirla desde `config/narrador.json` y compararla otra vez.
+- **2026-11-23** — Los apodos se conocen al registrarse, así que las frases que nombran a
+  un jugador se generan en segundo plano apenas entra (`alRegistrarJugador`).
+- **2026-11-23** — Control de versiones inicializado y el estado estable etiquetado como
+  `v1.0.0` antes de empezar la Etapa 2.

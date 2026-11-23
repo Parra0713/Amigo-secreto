@@ -144,6 +144,17 @@ export function crearJuego({ repositorio, log = console }) {
 
     configVoz: textosNarrador.voces ?? {},
 
+    /** Las frases que nombran a un jugador, ya con su apodo puesto. */
+    frasesConApodo(apodo) {
+      const frases = [];
+      for (const opciones of Object.values(textosNarrador.eventos || {})) {
+        for (const texto of opciones) {
+          if (texto.includes('{apodo}')) frases.push({ texto: texto.replaceAll('{apodo}', apodo), personaje: 'grupier' });
+        }
+      }
+      return frases;
+    },
+
     /** Todas las frases fijas del narrador, para generarlas antes de jugar. */
     frasesParaPrecalentar() {
       const frases = [];
@@ -193,6 +204,8 @@ export function crearJuego({ repositorio, log = console }) {
       repositorio.guardarSnapshot(estado);
       emitirPublico();
       decidirSiguientePaso();      // entró alguien nuevo: se reevalúa el arranque
+      // Su apodo ya se conoce: las frases que lo nombran se pueden ir generando.
+      api.alRegistrarJugador?.(apodoLimpio);
       return { id, pin, apodo: apodoLimpio };
     },
 

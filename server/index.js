@@ -96,9 +96,15 @@ registrarWebsocket(app, juego);
 
 await app.listen({ port: PUERTO, host: '0.0.0.0' });
 
-// Se generan de antemano las frases fijas: en vivo nunca debe haber espera.
+// Se generan de antemano las frases fijas que no estén ya en el banco.
 if (vozNeural.disponible) {
   setTimeout(() => vozNeural.precalentar(juego.frasesParaPrecalentar()), 500);
+
+  // Y en cuanto alguien se registra, las frases que dicen su apodo: para cuando
+  // el grupier lo nombre en la partida, el audio ya está hecho.
+  juego.alRegistrarJugador = (apodo) => {
+    setTimeout(() => vozNeural.precalentar(juego.frasesConApodo(apodo), { pausaMs: 80 }), 200);
+  };
 }
 app.log.info(`TV:    http://localhost:${PUERTO}/tv/`);
 app.log.info(`Celu:  http://${ipLocal()}:${PUERTO}/play/`);

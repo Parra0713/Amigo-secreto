@@ -87,7 +87,7 @@ síntesis falla con *"phoneme_codepoints is empty"*. La 1.13.6 funciona tal cual
 - El objetivo de esta noche era que el juego funcione. El narrador actual, con dos voces,
   prosodia trabajada y troceo por frases, ya cumple.
 
-## 6. Cómo se dejó preparado el terreno
+## 7. Cómo se dejó preparado el terreno
 
 La forma de la pieza que falta ya está decidida, para que sea un cambio aislado:
 
@@ -101,7 +101,7 @@ La forma de la pieza que falta ya está decidida, para que sea un cambio aislado
 
 *(Este plan es el que se ejecutó; ver la sección 4.)*
 
-## 7. Fuentes
+## 8. Fuentes
 
 - AssemblyAI, *Best free TTS APIs and open-source text-to-speech models (2026)* — tabla de licencias y último commit.
 - Cartesia, *Best open-source TTS models, compared by license*.
