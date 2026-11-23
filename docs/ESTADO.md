@@ -20,6 +20,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | Las láminas no pasan antes de poderse leer, y nada habla encima | `web/tv/intro.js`, `web/tv/index.html` | `tests/entradas.test.js` |
 | La explicación es un cortometraje: 7 capítulos, 18 pasos, versión exprés | `config/corto.json`, `web/tv/corto.js`, `web/tv/puesta.js` | `tests/corto.test.js` (17 pruebas) |
 | Instrumento para medir si se entendió (listón: 4 de 5) | `/laboratorio/comprension.html` | pendiente de correr con personas |
+| Reconexión del celular, reinicio del servidor y dos pestañas | `tests/reconexion.test.js` | 6 pruebas con el servidor real |
 
 ---
 
@@ -28,7 +29,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | | |
 |---|---|
 | **Fases del plan original** | Las 6, completas |
-| **Pruebas automáticas** | **143, todas en verde** (~6 s) |
+| **Pruebas automáticas** | **149, todas en verde** (~67 s; `npm run test:rapido` deja fuera las de extremo a extremo y tarda 6 s) |
 | **Partida de extremo a extremo** | ✅ con 2, 4, 5, 6, 8, 10 y 15 jugadores virtuales |
 | **Modo automático sin tocar el panel** | ✅ arranca, juega y revela solo |
 | **Fugas de información secreta** | ✅ ninguna, verificado por jugador |

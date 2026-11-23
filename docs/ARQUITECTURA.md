@@ -301,6 +301,16 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   anfitrión apaga las explicaciones, el juego sigue como antes; y si la TV se cuelga, un
   tope de 60 s (`segundosMaximosEntrada`) arranca la ronda sola. Se reutiliza la máquina
   de la presentación (personaje 3D, gestos, etiquetas, subtítulos) en vez de escribir otra.
+- **2026-11-23** — **Pruebas de reconexión y de reinicio, con el servidor de verdad**
+  (`tests/reconexion.test.js`): se levanta el proceso, se conectan sockets, se les corta
+  la red con `terminate()` —como quedarse sin WiFi, sin despedida— y se verifica que al
+  volver con el mismo PIN la vista regrese completa, con la pista comprada todavía
+  legible. También se mata el servidor a mitad de partida y se vuelve a levantar sobre la
+  misma carpeta de datos: la partida sigue en su fase y con sus fichas. Dos pestañas del
+  mismo jugador conviven sin echarse. Y una prueba de ritmo: tras registrarse —el momento
+  de más CPU, porque se pre-generan las frases con su apodo— el servidor tiene que
+  contestar un `ping` en menos de 2,5 s. Esa última falla a propósito si alguien devuelve
+  la voz al hilo principal: así quedó atrapado el error de la congelada.
 - **2026-11-23** — **La explicación pasa a ser un cortometraje.** Las diez láminas
   explicaban reglas con un dibujo al lado; ahora tres personajes de mentiras —Tita, Nacho
   y Pipe— juegan una partida en miniatura y **ninguna regla se nombra antes de verse

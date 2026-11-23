@@ -22,7 +22,8 @@ meses.
 ## Antes de cada commit
 
 ```bash
-npm test            # 122 pruebas, ~6 s, sin dependencias de desarrollo
+npm test            # 149 pruebas, ~67 s (incluye las de extremo a extremo)
+npm run test:rapido # las mismas sin levantar servidores: ~6 s, para iterar
 npm run simular 6   # partida completa con jugadores virtuales
 ```
 

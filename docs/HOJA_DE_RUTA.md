@@ -83,7 +83,7 @@ de pistas con un modelo local como mejora opcional.
 | Apuesta relámpago como ronda real | 2 | Media | Pendiente |
 | Partidas de 2 jugadores: ronda de trampa sin callejón | 2 | Media | Pendiente |
 | Trampa: ofrecer solo temas viables | 2 | Media | Pendiente |
-| Pruebas automáticas de reconexión y reinicio de servidor | 2 | Alta | Pendiente |
+| Pruebas automáticas de reconexión y reinicio de servidor | 2 | Alta | **Hecho** — `tests/reconexion.test.js`, con el servidor real |
 | Revelación más épica y premios finales | 2 | Media | Idea |
 | Recuerdo compartible de la partida | 2 | Baja | Idea |
 | Modo ensayo con bots | 2 o 3 | Media | Idea |

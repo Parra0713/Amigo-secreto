@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node server/index.js",
     "test": "node --test \"tests/*.test.js\"",
+    "test:rapido": "node --test \"tests/!(reconexion).test.js\"",
     "simular": "node tests/simulador.js",
     "voz": "node tools/descargar-voz.mjs",
     "voces": "node tools/prerenderizar.mjs"
