@@ -53,6 +53,17 @@ El modelo **no se distribuye con el proyecto**: lo descarga `descargar-voz.bat` 
 lanzamientos de sherpa-onnx en GitHub. Se guarda en `modelos/`, que está en `.gitignore`.
 Si no está instalado, el juego usa las voces de Windows y funciona igual.
 
+## Muestras del laboratorio de voz
+
+`web/laboratorio/muestras/*.wav` son audios **generados por nosotros** con los modelos
+listados arriba, a partir de frases propias del juego. No son grabaciones de terceros.
+Están ahí para comparar motores a ciegas y no forman parte del juego.
+
+| Muestra | Generada con |
+|---|---|
+| `piper-*.wav` | Piper `es_MX-claude-high` (Apache-2.0) |
+| `kokoro-ef_dora-*`, `kokoro-em_alex-*`, `kokoro-em_santa-*` | Kokoro-82M v1.0 (Apache-2.0), voces en español |
+
 ## Motor 3D
 
 | Componente | Versión | Licencia | Fuente |

@@ -8,11 +8,16 @@ import { fileURLToPath } from 'node:url';
 
 const raiz = fileURLToPath(new URL('..', import.meta.url));
 
-/** Recorre carpetas. Se salta 'vendor': librerías de terceros servidas desde el propio PC. */
+/**
+ * Recorre carpetas. Se saltan dos:
+ *  - 'vendor': librerías de terceros servidas desde el propio PC.
+ *  - 'laboratorio': herramienta de comparación de voces, no es parte del juego.
+ *    Sus muestras .wav las generamos nosotros con nuestros propios modelos.
+ */
 function archivosDe(carpeta, extensiones, { incluirVendor = false } = {}) {
   const salida = [];
   for (const entrada of readdirSync(carpeta)) {
-    if (!incluirVendor && entrada === 'vendor') continue;
+    if (!incluirVendor && (entrada === 'vendor' || entrada === 'laboratorio')) continue;
     const ruta = join(carpeta, entrada);
     if (statSync(ruta).isDirectory()) salida.push(...archivosDe(ruta, extensiones, { incluirVendor }));
     else if (extensiones.some((e) => entrada.endsWith(e))) salida.push(ruta);
@@ -67,7 +72,9 @@ test('la fuente tipográfica es del sistema, no descargada', () => {
   assert.ok(!css.includes('@font-face'), 'una @font-face implicaría un archivo o una descarga');
 });
 
-test('no hay archivos de audio: los sonidos se sintetizan en el navegador', () => {
+test('el juego no trae archivos de audio: los sonidos se sintetizan en el navegador', () => {
+  // Se excluye el laboratorio: sus muestras son audio que generamos nosotros
+  // para comparar motores, no recursos del juego ni de terceros.
   const audio = archivosDe(join(raiz, 'web'), ['.mp3', '.wav', '.ogg', '.m4a']);
   assert.deepEqual(audio, []);
   const js = readFileSync(join(raiz, 'web/shared/audio.js'), 'utf8');
