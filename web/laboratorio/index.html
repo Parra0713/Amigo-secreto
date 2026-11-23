@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratorio de voz — El Plan del Amigo Secreto</title>
+<link rel="stylesheet" href="/shared/estilos.css">
+<style>
+  main{max-width:820px;margin:0 auto;padding:var(--e4) var(--e3) var(--e6)}
+  .par{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3);margin:var(--e3) 0}
+  .lado{text-align:center;padding:var(--e4) var(--e3);border:2px solid var(--borde);
+        border-radius:var(--radio-grande);background:var(--fondo2)}
+  .lado .letra{font-size:48px;font-weight:800;color:var(--oro);line-height:1}
+  .votos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--e2)}
+  table{width:100%;border-collapse:collapse;font-size:var(--txt-secundario);margin-top:var(--e2)}
+  th,td{text-align:left;padding:var(--e2);border-bottom:1px solid var(--borde)}
+  td.num{font-variant-numeric:tabular-nums;text-align:right}
+  .barra{height:8px;border-radius:4px;background:var(--oro)}
+  .sonando{border-color:var(--oro);border-width:3px}
+  details{margin-top:var(--e3)}
+  summary{cursor:pointer;color:var(--tenue);padding:var(--e2) 0}
+</style>
+</head>
+<body class="degradado">
+<main>
+  <h1>Laboratorio de voz</h1>
+  <p class="tenue">Compara a ciegas: no se dice qué motor es cada uno hasta que votes.
+  Escucha los dos, vota, y repite. Al final aparece el conteo.</p>
+
+  <div class="tarjeta">
+    <div class="fila">
+      <label for="personaje" style="margin:0">Personaje</label>
+      <select id="personaje" style="width:auto;flex:1">
+        <option value="grupier">Grupier (frase dramática)</option>
+        <option value="explicador">Explicador (frase de reglas)</option>
+      </select>
+    </div>
+    <div class="fila" style="margin-top:var(--e2)">
+      <label for="proceso" style="margin:0">Procesamiento</label>
+      <select id="proceso" style="width:auto;flex:1">
+        <option value="crudo">Crudo, sin efectos</option>
+        <option value="procesado">Con la cadena del juego</option>
+      </select>
+    </div>
+    <div class="fila" style="margin-top:var(--e2)">
+      <label for="sala" style="margin:0">Modo sala</label>
+      <select id="sala" style="width:auto;flex:1">
+        <option value="no">Silencio</option>
+        <option value="si">Con música de fondo encima</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="par">
+    <div class="lado" id="ladoA">
+      <div class="letra">A</div>
+      <button class="boton" data-oir="A">▶ Escuchar A</button>
+    </div>
+    <div class="lado" id="ladoB">
+      <div class="letra">B</div>
+      <button class="boton" data-oir="B">▶ Escuchar B</button>
+    </div>
+  </div>
+
+  <div class="votos">
+    <button class="boton" data-voto="A">Gana A</button>
+    <button class="boton secundario" data-voto="empate">Iguales</button>
+    <button class="boton" data-voto="B">Gana B</button>
+  </div>
+  <p id="revelacion" class="tenue" role="status" aria-live="polite"></p>
+
+  <h2 style="margin-top:var(--e5)">Resultados</h2>
+  <p id="totalVotos" class="tenue pie"></p>
+  <table>
+    <thead><tr><th>Candidato</th><th class="num">Gana</th><th class="num">Pierde</th><th class="num">%</th><th></th></tr></thead>
+    <tbody id="tabla"></tbody>
+  </table>
+  <button class="boton secundario" id="exportar">Copiar resultados</button>
+  <button class="boton secundario" id="borrar">Borrar votos</button>
+
+  <details>
+    <summary>Escuchar sin ocultar nada</summary>
+    <div id="directo"></div>
+  </details>
+</main>
+
+<script type="module">
+import { desbloquear, contexto, salida, ambienteEncender, ambienteApagar } from '/shared/audio.js';
+
+const $ = (id) => document.getElementById(id);
+
+// Candidatos: cada uno es un motor/voz con sus dos frases grabadas.
+const CANDIDATOS = [
+  { id: 'piper',          nombre: 'Piper es_MX-claude-high (el actual)', archivo: 'piper' },
+  { id: 'kokoro-dora',    nombre: 'Kokoro ef_dora (voz femenina)',       archivo: 'kokoro-ef_dora' },
+  { id: 'kokoro-alex',    nombre: 'Kokoro em_alex (voz masculina)',      archivo: 'kokoro-em_alex' },
+  { id: 'kokoro-santa',   nombre: 'Kokoro em_santa (voz masculina)',     archivo: 'kokoro-em_santa' }
+];
+
+const CADENA = {
+  grupier:    { velocidad: 0.87, graves: 5.5, pecho: 2.5, presencia: -2, sibilancia: -5,
+                saturacion: 0.3, reverb: 0.3, preRetardo: 0.035 },
+  explicador: { velocidad: 1, graves: 1, pecho: 0, presencia: 2, sibilancia: -2,
+                saturacion: 0, reverb: 0.08, preRetardo: 0.012 }
+};
+
+let votos = JSON.parse(localStorage.getItem('plan.lab.votos') || '[]');
+let parActual = null;
+let fuenteActiva = null;
+const buffers = new Map();
+
+const personaje = () => $('personaje').value;
+
+async function cargar(candidato) {
+  const clave = `${candidato.archivo}-${personaje()}`;
+  if (buffers.has(clave)) return buffers.get(clave);
+  const ctx = desbloquear();
+  const r = await fetch(`/laboratorio/muestras/${clave}.wav`);
+  const buffer = await ctx.decodeAudioData(await r.arrayBuffer());
+  buffers.set(clave, buffer);
+  return buffer;
+}
+
+function curvaSaturacion(cantidad) {
+  const n = 1024, curva = new Float32Array(n), k = cantidad * 12;
+  for (let i = 0; i < n; i++) {
+    const x = (i * 2) / n - 1;
+    curva[i] = k === 0 ? x : Math.tanh(k * x) / Math.tanh(k);
+  }
+  return curva;
+}
+
+function impulso(ctx) {
+  const largo = Math.floor(ctx.sampleRate * 2);
+  const b = ctx.createBuffer(2, largo, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    for (let i = 0; i < largo; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / largo, 3.4);
+  }
+  return b;
+}
+
+async function reproducir(candidato, lado) {
+  const ctx = desbloquear();
+  if (fuenteActiva) { try { fuenteActiva.stop(); } catch {} }
+  document.querySelectorAll('.lado').forEach((l) => l.classList.remove('sonando'));
+  if (lado) $(`lado${lado}`).classList.add('sonando');
+
+  const buffer = await cargar(candidato);
+  const fuente = ctx.createBufferSource();
+  fuente.buffer = buffer;
+  const destino = salida();
+
+  if ($('proceso').value === 'crudo') {
+    fuente.connect(destino);
+  } else {
+    const a = CADENA[personaje()];
+    fuente.playbackRate.value = a.velocidad;
+    const eq = (tipo, hz, gain, q) => {
+      const f = ctx.createBiquadFilter();
+      f.type = tipo; f.frequency.value = hz; f.gain.value = gain; if (q) f.Q.value = q;
+      return f;
+    };
+    const sat = ctx.createWaveShaper(); sat.curve = curvaSaturacion(a.saturacion); sat.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -22; comp.ratio.value = 3;
+    const cadena = fuente
+      .connect(eq('lowshelf', 180, a.graves))
+      .connect(eq('peaking', 420, a.pecho, 0.9))
+      .connect(eq('peaking', 2500, a.presencia, 1))
+      .connect(eq('peaking', 6500, a.sibilancia, 2))
+      .connect(sat).connect(comp);
+    const seco = ctx.createGain(); seco.gain.value = 1 - a.reverb * 0.45;
+    cadena.connect(seco).connect(destino);
+    const pre = ctx.createDelay(0.2); pre.delayTime.value = a.preRetardo;
+    const sala = ctx.createConvolver(); sala.buffer = impulso(ctx);
+    const humedo = ctx.createGain(); humedo.gain.value = a.reverb;
+    cadena.connect(pre).connect(sala).connect(humedo).connect(destino);
+  }
+
+  if ($('sala').value === 'si') ambienteEncender();
+  fuente.start();
+  fuenteActiva = fuente;
+  fuente.onended = () => document.querySelectorAll('.lado').forEach((l) => l.classList.remove('sonando'));
+}
+
+/** Arma un par nuevo, al azar y sin decir quién es quién. */
+function nuevoPar() {
+  const mezcla = [...CANDIDATOS].sort(() => Math.random() - 0.5);
+  parActual = { A: mezcla[0], B: mezcla[1] };
+  $('revelacion').textContent = '';
+  document.querySelectorAll('[data-voto]').forEach((b) => { b.disabled = false; });
+}
+
+function pintarResultados() {
+  const conteo = {};
+  for (const c of CANDIDATOS) conteo[c.id] = { gana: 0, pierde: 0, nombre: c.nombre };
+  for (const v of votos) {
+    if (v.ganador === 'empate') continue;
+    conteo[v.ganador].gana++;
+    conteo[v.perdedor].pierde++;
+  }
+  const filas = Object.entries(conteo)
+    .map(([id, c]) => ({ id, ...c, total: c.gana + c.pierde }))
+    .sort((a, b) => (b.gana / (b.total || 1)) - (a.gana / (a.total || 1)));
+
+  $('totalVotos').textContent = votos.length
+    ? `${votos.length} comparaciones hechas`
+    : 'Todavía no has votado nada.';
+  $('tabla').innerHTML = filas.map((f) => {
+    const pct = f.total ? Math.round((f.gana / f.total) * 100) : 0;
+    return `<tr><td>${f.nombre}</td><td class="num">${f.gana}</td><td class="num">${f.pierde}</td>
+      <td class="num">${f.total ? pct + '%' : '—'}</td>
+      <td style="width:35%"><div class="barra" style="width:${pct}%"></div></td></tr>`;
+  }).join('');
+}
+
+document.addEventListener('click', async (e) => {
+  const oir = e.target.dataset?.oir;
+  const voto = e.target.dataset?.voto;
+
+  if (oir) return reproducir(parActual[oir], oir);
+
+  if (voto) {
+    const ganador = voto === 'empate' ? 'empate' : parActual[voto].id;
+    const perdedor = voto === 'empate' ? 'empate' : parActual[voto === 'A' ? 'B' : 'A'].id;
+    votos.push({ ganador, perdedor, personaje: personaje(), proceso: $('proceso').value, sala: $('sala').value, ts: Date.now() });
+    localStorage.setItem('plan.lab.votos', JSON.stringify(votos));
+    $('revelacion').textContent = `Era A = ${parActual.A.nombre} · B = ${parActual.B.nombre}`;
+    document.querySelectorAll('[data-voto]').forEach((b) => { b.disabled = true; });
+    ambienteApagar();
+    pintarResultados();
+    setTimeout(nuevoPar, 2600);
+  }
+});
+
+$('exportar').onclick = async () => {
+  await navigator.clipboard.writeText(JSON.stringify(votos, null, 1));
+  $('exportar').textContent = 'Copiado';
+  setTimeout(() => { $('exportar').textContent = 'Copiar resultados'; }, 1500);
+};
+$('borrar').onclick = () => {
+  votos = [];
+  localStorage.removeItem('plan.lab.votos');
+  pintarResultados();
+};
+$('personaje').onchange = () => { buffers.clear(); nuevoPar(); pintarDirecto(); };
+
+function pintarDirecto() {
+  $('directo').innerHTML = CANDIDATOS.map((c) => `
+    <div class="fila" style="margin:var(--e2) 0">
+      <span class="crece">${c.nombre}</span>
+      <button class="boton secundario" style="width:auto;margin:0" data-directo="${c.id}">▶</button>
+    </div>`).join('');
+  $('directo').onclick = (e) => {
+    const id = e.target.dataset?.directo;
+    if (id) reproducir(CANDIDATOS.find((c) => c.id === id), null);
+  };
+}
+
+nuevoPar();
+pintarResultados();
+pintarDirecto();
+</script>
+</body>
+</html>
