@@ -309,9 +309,17 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
 
     // Si hay voz, la lámina avanza cuando la voz termina de hablar.
     // Si no hay voz, se avanza por tiempo estimado: la explicación no se congela.
+    let duracionReal = 0;        // ms, cuando el audio dice cuánto mide
     const habla = hablar?.(paso.texto, {
       personaje: paso.voz || 'explicador',
-      alTerminar: () => { clearTimeout(tope); bocaQuieta(); programarSiguiente(); }
+      alEmpezar: (segundos) => { duracionReal = (segundos || 0) * 1000; },
+      alTerminar: () => {
+        // Aviso que llega demasiado pronto: es de otra frase, no de esta.
+        if (duracionReal && Date.now() - t0 < duracionReal * 0.6) return;
+        clearTimeout(tope);
+        bocaQuieta();
+        programarSiguiente();
+      }
     });
 
     // Red de seguridad: si el audio nunca suena (el navegador puede bloquearlo

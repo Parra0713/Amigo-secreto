@@ -292,6 +292,11 @@ export function crearPuesta({ piezas, encuadre, reloj = crearReloj(), nombres = 
     /** Ejecuta una acción del guion. Devuelve false si no existe. */
     accion(nombre, opciones = {}) {
       const hacer = ACCIONES[nombre];
+      // Con /tv/?depurar=1 se ve en consola qué pide el guion y si existe:
+      // una acción que no llega no lanza nada, solo deja la escena quieta.
+      if (typeof location !== 'undefined' && location.search.includes('depurar')) {
+        console.debug('[escena]', nombre, Boolean(hacer), JSON.stringify(opciones));
+      }
       if (!hacer) return false;
       hacer(opciones);
       return true;

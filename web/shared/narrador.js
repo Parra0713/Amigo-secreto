@@ -208,7 +208,9 @@ export function decir(texto, { interrumpir = true, personaje = 'grupier' } = {})
         alNivel: (n) => ganchos.alNivel?.(n),
         alTerminar: () => { hablando = false; ganchos.alTerminar?.(); }
       })
-      .then((sonó) => { if (!sonó) decirConNavegador(texto, { interrumpir: false, personaje }); })
+      // false = no había audio. 'cancelado' = lo cortó otra frase, y entonces
+      // no hay que repetirlo con la voz del navegador.
+      .then((sonó) => { if (sonó === false) decirConNavegador(texto, { interrumpir: false, personaje }); })
       .catch(() => decirConNavegador(texto, { interrumpir: false, personaje }));
     return true;
   }

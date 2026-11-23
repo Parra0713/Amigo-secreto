@@ -18,6 +18,7 @@
    ============================================================ */
 
 import * as THREE from '../shared/vendor/three/three.module.js';
+import { crearPuesta } from './puesta.js';
 
 // §5.3 — tres principales + un acento. Ningún color fuera de aquí.
 const PALETA = {
@@ -36,6 +37,20 @@ const PALETA_UTILERIA = {
   falsaLuz: 0x4a0f0a,   // su emisión, para que no se apague en la penumbra
   fantasma: 0xdfe4f5,   // el bono fantasma: blanco frío, lo único translúcido
   fantasmaLuz: 0x6677aa   // su emisión azulada: frío contra la vela cálida (§5.1)
+};
+
+/* Planos de cámara. Exportados porque una prueba comprueba que lo que cada
+   plano tiene que mostrar —los tres invitados, la mesa— de verdad entra en
+   cuadro: un encuadre mal puesto no lanza ningún error, simplemente deja la
+   escena vacía, y eso desde la sala se ve como "no pasa nada". */
+export const ENCUADRES = {
+  reposo:  { pos: [0.55, 2.5, 4.35],  mira: [0, 2.1, 0] },
+  cerca:   { pos: [0.2, 2.75, 3.1],   mira: [0, 2.5, 0] },
+  // Los planos del cortometraje tienen que abarcar a los tres invitados,
+  // que están sentados al otro lado de la mesa y más abajo que el grupier.
+  mesa:    { pos: [0.3, 2.3, 5.2],    mira: [0, 1.0, 1.4] },
+  ancho:   { pos: [0.9, 2.6, 6.2],    mira: [0, 1.05, 1.3] },
+  complot: { pos: [-1.1, 2.3, 4.9],   mira: [0.1, 1.0, 1.35] }
 };
 
 const RETRASO_TORSO = 0.09;      // s — §6.3 overlapping
@@ -386,13 +401,6 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
   const reloj = new THREE.Clock();
 
   // Encuadres por gesto: la cámara también actúa (§6: la puesta en escena acompaña).
-  const ENCUADRES = {
-    reposo:  { pos: [0.55, 2.5, 4.35],  mira: [0, 2.1, 0] },
-    cerca:   { pos: [0.2, 2.75, 3.1],   mira: [0, 2.5, 0] },
-    mesa:    { pos: [0.35, 2.1, 3.6],   mira: [0, 0.7, 2.6] },
-    ancho:   { pos: [1.3, 2.9, 5.4],    mira: [0, 1.8, 1.2] },
-    complot: { pos: [-0.8, 2.45, 3.0],  mira: [0.15, 2.3, 0.4] }
-  };
   let encuadre = 'reposo';
   const posObjetivo = new THREE.Vector3(...ENCUADRES.reposo.pos);
   const miraObjetivo = new THREE.Vector3(...ENCUADRES.reposo.mira);

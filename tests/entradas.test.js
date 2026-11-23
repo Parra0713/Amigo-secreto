@@ -127,3 +127,42 @@ test('la narración no habla encima de la explicación', () => {
   assert.match(bloque, /\$\('narracion'\)\.textContent = m\.texto/);
   assert.match(tv, /const explicando = \(\) =>/);
 });
+
+test('cortar un audio no cuenta como "la frase terminó"', () => {
+  const voz = leer('web/shared/voz.js');
+  // Al hacer stop(), el navegador dispara onended: hay que desarmarlo antes,
+  // o el corto cree que la lámina acabó y pasa a la siguiente a los 900 ms.
+  assert.match(voz, /nodo\.onended = null; nodo\.stop\(\)/);
+  assert.match(voz, /cerrar\?\.\('cancelado'\)/);
+  // Y "lo cortaron" no es "no sonó": si no, se repite con la voz del navegador.
+  assert.match(leer('web/shared/narrador.js'), /if \(sonó === false\) decirConNavegador/);
+});
+
+test('al reconectar, el socket viejo no le escribe al nuevo', () => {
+  const cliente = leer('web/shared/cliente.js');
+  assert.match(cliente, /const mio = new WebSocket\(url\)/);
+  // Cada manejador comprueba que sigue siendo el socket vigente.
+  assert.ok((cliente.match(/socket (?:!==|===) mio/g) || []).length >= 3,
+    'onopen, onmessage y onclose deben comprobarlo');
+  assert.match(cliente, /mio\.send\(JSON\.stringify\(saludo\)\)/);
+});
+
+test('la revelación no se hace eterna', () => {
+  const { automatico } = reglas;
+  assert.ok(automatico.segundosEntreRevelaciones <= 10,
+    `${automatico.segundosEntreRevelaciones} s entre parejas es mucho para 10 personas`);
+  assert.ok(automatico.segundosEntreRevelaciones >= 5, 'tampoco tan rápido que no se entienda');
+  assert.ok(automatico.pausaEntreRondas <= 6);
+});
+
+test('un aviso de fin que llega demasiado pronto se ignora', () => {
+  for (const archivo of ['web/tv/corto.js', 'web/tv/intro.js']) {
+    const codigo = leer(archivo);
+    assert.match(codigo, /duracionReal \* 0\.6/, `${archivo}: sin red contra avisos tempranos`);
+    assert.match(codigo, /alEmpezar: \(segundos\)/, `${archivo}: no recibe la duración del audio`);
+  }
+  // Y la TV se la pasa a las dos.
+  const tv = leer('web/tv/index.html');
+  assert.equal((tv.match(/gancharVoz\(alTerminar, alEmpezar\)/g) || []).length, 3,
+    'corto, entrada de ronda y presentación de respaldo');
+});

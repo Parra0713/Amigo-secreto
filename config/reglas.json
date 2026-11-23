@@ -49,8 +49,8 @@
     "activo": true,
     "iniciarAlEstarTodosListos": true,
     "segundosAntesDeIniciar": 20,
-    "pausaEntreRondas": 6,
-    "segundosEntreRevelaciones": 14,
+    "pausaEntreRondas": 4,
+    "segundosEntreRevelaciones": 8,
     "explicarRondas": true,
     "segundosMaximosEntrada": 60
   },

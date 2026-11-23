@@ -5,16 +5,24 @@ export function conectar({ rol, alMensaje, alEstadoRed }) {
 
   const abrir = () => {
     const url = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
-    socket = new WebSocket(url);
+    // Propio de esta conexión: si entretanto se abre otra, los manejadores de
+    // esta no deben escribirle a la nueva. Pasaba al reconectar: el onopen del
+    // socket viejo le mandaba el saludo al nuevo, que todavía estaba
+    // conectando, y reventaba con "Still in CONNECTING state".
+    const mio = new WebSocket(url);
+    socket = mio;
 
-    socket.onopen = () => {
+    mio.onopen = () => {
+      if (socket !== mio) return;
       intentos = 0;
       alEstadoRed?.('conectado');
-      socket.send(JSON.stringify(saludo));
+      mio.send(JSON.stringify(saludo));
+      clearInterval(latido);
       latido = setInterval(() => enviar({ t: 'ping' }), 20000);
     };
-    socket.onmessage = (e) => { try { alMensaje(JSON.parse(e.data)); } catch {} };
-    socket.onclose = () => {
+    mio.onmessage = (e) => { if (socket === mio) { try { alMensaje(JSON.parse(e.data)); } catch {} } };
+    mio.onclose = () => {
+      if (socket !== mio) return;
       clearInterval(latido);
       if (cerradoAposta) return;
       alEstadoRed?.('reconectando');
@@ -22,7 +30,7 @@ export function conectar({ rol, alMensaje, alEstadoRed }) {
       const espera = Math.min(5000, 400 * 2 ** Math.min(intentos++, 4));
       setTimeout(abrir, espera);
     };
-    socket.onerror = () => {};
+    mio.onerror = () => {};
   };
 
   const enviar = (mensaje) => {

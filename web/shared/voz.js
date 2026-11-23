@@ -82,11 +82,21 @@ export function crearReproductorVoz({ ctx, destino, efectos = {}, alAgacharAmbie
   let activos = [];
   let animando = false;
 
+  /* Cortar un audio NO es que la frase haya terminado.
+     Al hacer stop(), el navegador dispara onended igual, y ese onended llamaba
+     a alTerminar: el corto lo tomaba como "esta lámina ya acabó" y pasaba a la
+     siguiente a los 900 ms, cortando la frase que acababa de empezar. Así que
+     primero se desarma el onended, y la promesa pendiente se cierra con
+     'cancelado', que no es lo mismo que "no sonó". */
+  let cerrarPendiente = null;
   const cancelar = () => {
-    for (const nodo of activos) { try { nodo.stop(); } catch {} }
+    for (const nodo of activos) { try { nodo.onended = null; nodo.stop(); } catch {} }
     activos = [];
     animando = false;
     alAgacharAmbiente?.(false);
+    const cerrar = cerrarPendiente;
+    cerrarPendiente = null;
+    cerrar?.('cancelado');
   };
 
   async function traer(texto, personaje) {
@@ -237,7 +247,9 @@ export function crearReproductorVoz({ ctx, destino, efectos = {}, alAgacharAmbie
     };
 
     const fin = new Promise((resolve) => {
+      cerrarPendiente = resolve;
       capas[0].fuente.onended = () => {
+        cerrarPendiente = null;
         animando = false;
         alNivel?.(0);
         alAgacharAmbiente?.(false);

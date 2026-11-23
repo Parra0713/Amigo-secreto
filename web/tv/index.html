@@ -211,8 +211,8 @@ fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces, rondas }) 
     personaje: actor,
     montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
     desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
-    hablar: (texto, { alTerminar, personaje }) => {
-      gancharVoz(alTerminar);
+    hablar: (texto, { alTerminar, alEmpezar, personaje }) => {
+      gancharVoz(alTerminar, alEmpezar);
       return decir(texto, { personaje });
     },
     duracion: duracionEstimada,
@@ -241,8 +241,8 @@ function abrirEntradaRonda(fase, titulo, partes) {
     personaje: actor,
     montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
     desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
-    hablar: (texto, { alTerminar, personaje }) => {
-      gancharVoz(alTerminar);
+    hablar: (texto, { alTerminar, alEmpezar, personaje }) => {
+      gancharVoz(alTerminar, alEmpezar);
       return decir(texto, { personaje });
     },
     duracion: duracionEstimada,

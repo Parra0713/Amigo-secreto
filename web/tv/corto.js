@@ -215,6 +215,8 @@ export function crearCorto({
     if (paso.accion) actor?.escena?.(paso.accion.nombre, paso.accion);
     bocaHabla();
 
+    let duracionReal = 0;        // ms, cuando el audio dice cuánto mide
+
     const programarSiguiente = () => {
       if (mia !== ficha || enPausa) return;
       const falta = Math.max(pausa, minimo - (Date.now() - t0));
@@ -223,9 +225,19 @@ export function crearCorto({
 
     const habla = hablar?.(paso.texto, {
       personaje: paso.voz || 'explicador',
-      alEmpezar: (segundos) => programarAcentos(paso, (segundos || 0) * 1000 ||
-        (duracion?.(paso.texto, paso.voz) ?? 6000)),
-      alTerminar: () => { clearTimeout(tope); bocaQuieta(); programarSiguiente(); }
+      alEmpezar: (segundos) => {
+        duracionReal = (segundos || 0) * 1000;
+        programarAcentos(paso, duracionReal || (duracion?.(paso.texto, paso.voz) ?? 6000));
+      },
+      alTerminar: () => {
+        // Un "ya terminé" que llega mucho antes de lo que mide el audio no es
+        // el final de esta frase: es el eco de otra que se canceló. Se ignora,
+        // y el tope de seguridad sigue vigilando por si de verdad no suena.
+        if (duracionReal && Date.now() - t0 < duracionReal * 0.6) return;
+        clearTimeout(tope);
+        bocaQuieta();
+        programarSiguiente();
+      }
     });
 
     if (habla) {

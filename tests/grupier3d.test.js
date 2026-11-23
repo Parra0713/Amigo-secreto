@@ -100,3 +100,46 @@ test('la TV avisa en consola si el 3D no arranca, en vez de callarse', () => {
   const html = readFileSync(new URL('../web/tv/index.html', import.meta.url), 'utf8');
   assert.match(html, /console\.warn\('El grupier 3D no pudo arrancar/);
 });
+
+/* Un encuadre mal puesto no lanza ningún error: deja la escena vacía, y eso
+   desde el sofá se ve como "no pasa nada". Así que se mide. */
+const { ENCUADRES } = await import(new URL('../web/tv/grupier3d.js', import.meta.url));
+
+/** ¿Este objeto entra en cuadro con ese plano? */
+function enCuadro(objeto, plano, { aspecto = 16 / 9, margen = 0 } = {}) {
+  const camara = new THREE.PerspectiveCamera(34, aspecto, 0.1, 60);
+  camara.position.set(...plano.pos);
+  camara.lookAt(new THREE.Vector3(...plano.mira));
+  camara.updateMatrixWorld(true);
+  camara.updateProjectionMatrix();
+  const frustum = new THREE.Frustum().setFromProjectionMatrix(
+    new THREE.Matrix4().multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse));
+  const caja = new THREE.Box3().setFromObject(objeto, true);
+  if (margen) caja.expandByScalar(-margen);
+  return frustum.intersectsBox(caja);
+}
+
+test('los tres invitados entran en cuadro en los planos del cortometraje', () => {
+  const { invitados } = construirEscena(THREE, {});
+  // Se miden visibles: en la escena arrancan ocultos y Box3 los ignoraría.
+  invitados.forEach((inv) => { inv.grupo.visible = true; inv.grupo.scale.setScalar(1); });
+
+  for (const nombre of ['ancho', 'mesa', 'complot']) {
+    invitados.forEach((inv, i) => {
+      assert.ok(enCuadro(inv.grupo, ENCUADRES[nombre]),
+        `el invitado ${i} se queda fuera del plano "${nombre}"`);
+    });
+  }
+});
+
+test('en el plano ancho se ve la mesa, que es donde pasa todo', () => {
+  const { mesa } = construirEscena(THREE, {});
+  assert.ok(enCuadro(mesa, ENCUADRES.ancho));
+  assert.ok(enCuadro(mesa, ENCUADRES.mesa));
+});
+
+test('el plano corto sigue siendo del grupier: ahí los invitados estorban', () => {
+  const { invitados, capucha } = construirEscena(THREE, {});
+  invitados.forEach((inv) => { inv.grupo.visible = true; inv.grupo.scale.setScalar(1); });
+  assert.ok(enCuadro(capucha, ENCUADRES.cerca), 'la cara tiene que estar en el plano corto');
+});

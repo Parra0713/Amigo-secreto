@@ -301,6 +301,31 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   anfitrión apaga las explicaciones, el juego sigue como antes; y si la TV se cuelga, un
   tope de 60 s (`segundosMaximosEntrada`) arranca la ronda sola. Se reutiliza la máquina
   de la presentación (personaje 3D, gestos, etiquetas, subtítulos) en vez de escribir otra.
+- **2026-11-23** — **Tres fallos de la primera prueba en la TV, con su causa real.**
+  · *"Volvió al 2D"*: faltaba el `import` de `crearPuesta` en `grupier3d.js`. No es un
+    error de sintaxis, así que `node --check` lo da por bueno y el navegador solo lo
+    dice en consola («crearPuesta is not defined») mientras cae al dibujo plano. Ahora
+    `tests/web-modulos.test.js` junta lo que exporta cada módulo de `web/` y falla si
+    alguien lo llama sin importarlo: es la segunda vez que este tipo de error llega a
+    la sala.
+  · *"Los diálogos se cortan y pasa al siguiente"*: al cancelar un audio para empezar
+    otro, el navegador dispara `onended` igual, y ese aviso se leía como "la frase
+    terminó". La lámina pasaba a los 900 ms. Ahora `cancelar()` desarma el `onended`
+    antes de parar, cierra la promesa pendiente con `'cancelado'` —que no es lo mismo
+    que "no sonó", o se repetiría con la voz del navegador— y, por si acaso, la lámina
+    ignora un aviso de fin que llegue antes del 60 % de lo que mide el audio.
+  · *"La revelación es lenta"*: 14 s entre parejas pasa a 8, y la pausa entre rondas de
+    6 s a 4.
+  Y de paso, un error de consola que llevaba ahí desde el principio: al reconectar, el
+  `onopen` del socket viejo le mandaba el saludo al socket nuevo, que todavía estaba
+  conectando («Still in CONNECTING state»). Cada conexión guarda ahora su propio socket
+  y comprueba que siga siendo la vigente.
+- **2026-11-23** — **Los planos de cámara se miden, no se calculan a ojo.** `ENCUADRES`
+  pasó a ser exportado y una prueba comprueba, con el frustum de verdad, que los tres
+  invitados y la mesa entran en cuadro en los planos del cortometraje. El plano de
+  complot, por ejemplo, los dejaba a los tres fuera: un encuadre mal puesto no lanza
+  ningún error, solo deja la escena vacía. Con `/tv/?depurar=1` la consola va diciendo
+  qué acción pide el guion y si existe.
 - **2026-11-23** — **Pruebas de reconexión y de reinicio, con el servidor de verdad**
   (`tests/reconexion.test.js`): se levanta el proceso, se conectan sockets, se les corta
   la red con `terminate()` —como quedarse sin WiFi, sin despedida— y se verifica que al
