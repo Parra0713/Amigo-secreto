@@ -320,6 +320,16 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   `onopen` del socket viejo le mandaba el saludo al socket nuevo, que todavía estaba
   conectando («Still in CONNECTING state»). Cada conexión guarda ahora su propio socket
   y comprueba que siga siendo la vigente.
+- **2026-11-23** — **La animación 3D llevaba congelada desde el principio.** El bucle
+  pedía `reloj.getElapsedTime()` y en la línea siguiente `reloj.getDelta()`; como
+  `getElapsedTime()` de `THREE.Clock` llama por dentro a `getDelta()`, el segundo
+  devolvía casi cero. Con `dt ≈ 0` no avanzaba **nada** de lo que se mueve por tiempo:
+  ni la cámara entre encuadres, ni la utilería de la explicación, ni los invitados del
+  cortometraje, que se quedaban al 1 % de su tamaño —invisibles— después de que el
+  guion los hiciera aparecer. Seguía vivo solo lo que depende del tiempo transcurrido
+  (la llama, la boca, la respiración), y por eso la escena parecía animada. Ahora el
+  delta se pide una sola vez y el tiempo se acumula a mano. `tests/grupier3d.test.js`
+  no deja volver a mezclar las dos llamadas en el mismo cuadro.
 - **2026-11-23** — **Los planos de cámara se miden, no se calculan a ojo.** `ENCUADRES`
   pasó a ser exportado y una prueba comprueba, con el frustum de verdad, que los tres
   invitados y la mesa entran en cuadro en los planos del cortometraje. El plano de

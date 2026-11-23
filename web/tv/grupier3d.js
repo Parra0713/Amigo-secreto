@@ -46,11 +46,15 @@ const PALETA_UTILERIA = {
 export const ENCUADRES = {
   reposo:  { pos: [0.55, 2.5, 4.35],  mira: [0, 2.1, 0] },
   cerca:   { pos: [0.2, 2.75, 3.1],   mira: [0, 2.5, 0] },
-  // Los planos del cortometraje tienen que abarcar a los tres invitados,
-  // que están sentados al otro lado de la mesa y más abajo que el grupier.
-  mesa:    { pos: [0.3, 2.3, 5.2],    mira: [0, 1.0, 1.4] },
-  ancho:   { pos: [0.9, 2.6, 6.2],    mira: [0, 1.05, 1.3] },
-  complot: { pos: [-1.1, 2.3, 4.9],   mira: [0.1, 1.0, 1.35] }
+  /* Los planos del cortometraje tienen que abarcar a los tres invitados, que
+     están sentados al otro lado de la mesa y mucho más abajo que el grupier.
+     Las distancias están medidas, no puestas a ojo: `tests/grupier3d.test.js`
+     comprueba con el frustum real que en el plano general quepan los cuatro
+     —el grupier entero y los tres invitados— y que en los planos de mesa
+     quepan los invitados, que es donde pasa la acción. */
+  mesa:    { pos: [0.3, 2.6, 7.0],    mira: [0, 1.0, 1.2] },
+  ancho:   { pos: [0.6, 3.2, 9.0],    mira: [0, 1.3, 1.0] },
+  complot: { pos: [-0.7, 2.5, 7.2],   mira: [0.1, 1.0, 1.2] }
 };
 
 const RETRASO_TORSO = 0.09;      // s — §6.3 overlapping
@@ -398,6 +402,7 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
   let gestoT = 0;
   const historialGiro = [];
   let animando = true;
+  let tiempo = 0;                 // segundos acumulados, ver cuadro()
   const reloj = new THREE.Clock();
 
   // Encuadres por gesto: la cámara también actúa (§6: la puesta en escena acompaña).
@@ -493,8 +498,17 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
   function cuadro() {
     if (!animando) return;
     requestAnimationFrame(cuadro);
-    const t = reloj.getElapsedTime();
+    /* OJO con el orden. getElapsedTime() de THREE.Clock llama por dentro a
+       getDelta(), así que si se pide primero el tiempo transcurrido, el
+       getDelta() de la línea siguiente devuelve casi cero. Con dt = 0 no
+       avanza NADA de lo que se mueve por tiempo: ni la cámara entre encuadres,
+       ni la utilería, ni los invitados del cortometraje. Solo seguía vivo lo
+       que depende de t —la llama, la boca, la respiración—, y por eso la
+       escena parecía animada mientras en realidad estaba congelada.
+       Se pide el delta una sola vez y el tiempo se acumula aquí. */
     const dt = Math.min(reloj.getDelta(), 0.05);
+    tiempo += dt;
+    const t = tiempo;
 
     // Boca: si llega amplitud real de la voz, manda esa; si no, oscila.
     const objetivoBoca = hablando
@@ -573,7 +587,7 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
   }
   cuadro();
 
-  return {
+  const api = {
     disponible: true,
     hablar(valor) {
       if (valor === hablando) return;
@@ -590,6 +604,17 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
     accionesDeEscena: puesta.acciones,
     reposo() { puesta.limpiar(); gesto('reposo'); },
     redimensionar,
+    /** Para diagnosticar desde la consola con /tv/?depurar=1. */
+    diagnostico: () => ({
+      encuadre,
+      camara: camara.position.toArray().map((n) => +n.toFixed(2)),
+      invitados: invitados.map((i) => ({ visible: i.grupo.visible, escala: +i.grupo.scale.x.toFixed(2) })),
+      cuadrosDibujados: renderizador.info.render.frame,
+      animando,
+      lienzo: [renderizador.domElement.width, renderizador.domElement.height],
+      caja: [contenedor.clientWidth, contenedor.clientHeight],
+      aspecto: +camara.aspect.toFixed(2)
+    }),
     destruir() {
       animando = false;
       observador.disconnect();
@@ -597,4 +622,7 @@ export function crearGrupier3D(contenedor, { silueta = false } = {}) {
       renderizador.domElement.remove();
     }
   };
+
+  if (typeof location !== 'undefined' && location.search.includes('depurar')) window.grupier = api;
+  return api;
 }

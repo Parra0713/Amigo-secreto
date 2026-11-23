@@ -132,14 +132,46 @@ test('los tres invitados entran en cuadro en los planos del cortometraje', () =>
   }
 });
 
-test('en el plano ancho se ve la mesa, que es donde pasa todo', () => {
-  const { mesa } = construirEscena(THREE, {});
-  assert.ok(enCuadro(mesa, ENCUADRES.ancho));
-  assert.ok(enCuadro(mesa, ENCUADRES.mesa));
+test('en el plano general cabe la escena entera: grupier y los tres', () => {
+  const { invitados, personaje, mesa } = construirEscena(THREE, {});
+  invitados.forEach((inv) => { inv.grupo.visible = true; inv.grupo.scale.setScalar(1); });
+
+  // "Entra en cuadro" aquí es completo, no a medias: nada cortado por los bordes.
+  const completo = (objeto) => {
+    const camara = new THREE.PerspectiveCamera(34, 16 / 9, 0.1, 60);
+    camara.position.set(...ENCUADRES.ancho.pos);
+    camara.lookAt(new THREE.Vector3(...ENCUADRES.ancho.mira));
+    camara.updateMatrixWorld(true);
+    camara.updateProjectionMatrix();
+    const caja = new THREE.Box3().setFromObject(objeto, true);
+    const esquinas = [];
+    for (const x of [caja.min.x, caja.max.x])
+      for (const y of [caja.min.y, caja.max.y])
+        for (const z of [caja.min.z, caja.max.z])
+          esquinas.push(new THREE.Vector3(x, y, z).project(camara));
+    return esquinas.every((e) => Math.abs(e.x) <= 1 && Math.abs(e.y) <= 1);
+  };
+
+  assert.ok(completo(personaje), 'al grupier no se le puede cortar la cabeza en el plano general');
+  invitados.forEach((inv, i) => assert.ok(completo(inv.grupo), `el invitado ${i} sale cortado`));
+  assert.ok(enCuadro(mesa, ENCUADRES.ancho), 'y la mesa se ve');
 });
 
 test('el plano corto sigue siendo del grupier: ahí los invitados estorban', () => {
   const { invitados, capucha } = construirEscena(THREE, {});
   invitados.forEach((inv) => { inv.grupo.visible = true; inv.grupo.scale.setScalar(1); });
   assert.ok(enCuadro(capucha, ENCUADRES.cerca), 'la cara tiene que estar en el plano corto');
+});
+
+test('el bucle calcula el delta una sola vez: con dt en cero no se mueve nada', () => {
+  const codigo = readFileSync(new URL('../web/tv/grupier3d.js', import.meta.url), 'utf8');
+  const bucle = codigo.match(/function cuadro\(\) \{[\s\S]*?\n  \}/)[0]
+    .replace(/\/\*[\s\S]*?\*\//g, '')      // los comentarios explican el error,
+    .replace(/\/\/.*$/gm, '');              // no lo cometen
+  // getElapsedTime() llama por dentro a getDelta(): pedirlo antes dejaba el
+  // delta en casi cero y congelaba cámara, utilería e invitados.
+  assert.ok(!bucle.includes('getElapsedTime'),
+    'el bucle no debe usar getElapsedTime: deja el delta en cero');
+  assert.equal((bucle.match(/getDelta\(\)/g) || []).length, 1, 'un solo getDelta por cuadro');
+  assert.match(bucle, /tiempo \+= dt/, 'el tiempo se acumula a mano');
 });
