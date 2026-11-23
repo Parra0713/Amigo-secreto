@@ -87,6 +87,8 @@ Desde ahí controlas todo:
 | **Siguiente ronda** | Pasa a la ronda que sigue sin esperar el reloj |
 | **Pausar / Reanudar** | Congela el reloj, por si hay que servir el almuerzo |
 | **Revelar siguiente** | En la revelación, destapa una pareja a la vez |
+| **Explicar rondas** | Deja o quita la explicación del grupier antes de cada ronda |
+| **Saltar explicación** | Corta la explicación en curso y arranca la ronda ya |
 | **Nueva partida** | Borra todo y empieza de cero |
 
 En ese panel también ves un **resumen anónimo**: cuántas pistas se armaron por montón y
@@ -94,6 +96,12 @@ si alguno quedó incompleto. **No ves el contenido de las pistas ni las parejas*
 a propósito, para que tú también puedas jugar.
 
 ### 6. Cómo va la partida
+Antes de cada ronda, el grupier aparece en la TV y la explica en tres momentos: qué va a
+pasar, qué va a ver cada uno en su celular y qué le conviene hacer. Mientras habla, los
+celulares dicen "mira la TV" y el reloj **no** corre: nadie pierde tiempo por estar
+entendiendo. Dura entre 20 y 40 segundos por ronda. Si ya todos saben jugar, apaga
+**Explicar rondas** en el panel, o córtala con **Saltar explicación**.
+
 1. **Ronda 1 — Compra de pistas.** Cada uno ve su montón cerrado y compra lo que quiera.
 2. **Ronda 2 — Trampa.** Por 1 ficha, cualquiera mete una pista falsa en otro montón.
 3. **Ronda 3 — Dilema.** Parejas al azar: cooperar o guardar.

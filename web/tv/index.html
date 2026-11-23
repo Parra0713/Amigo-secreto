@@ -168,7 +168,11 @@ gancharVoz();
 
 // Guion de la presentación y ajustes de voz, desde config/narrador.json
 const ajustesVoz = {};
-fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces }) => {
+let guionRondas = {};
+let entradaRonda = null;      // la mini-presentación que abre cada ronda
+
+fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces, rondas }) => {
+  guionRondas = rondas || {};
   configurarVoz(voces);
   Object.assign(ajustesVoz, voces);   // misma referencia: el reproductor ya la tiene
   if (!pasos.length) return;
@@ -192,6 +196,35 @@ fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces }) => {
   });
   $('btnExplicar').classList.remove('oculto');
 });
+
+/* Entrada de ronda: el grupier explica qué viene y qué hay que hacer.
+   Reutiliza la misma maquinaria de la presentación —personaje, gestos,
+   etiquetas y voz— pero con tres láminas en vez de diez. */
+function abrirEntradaRonda(fase, titulo, partes) {
+  if (!partes?.length) return cliente.enviar({ t: 'tv.entradaLista' });
+  activarAudio();
+  intro?.cerrar?.();
+
+  entradaRonda = crearIntro({
+    pasos: partes.map((p) => ({ ...p, titulo })),
+    personaje: actor,
+    montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
+    desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
+    hablar: (texto, { alTerminar, personaje }) => {
+      gancharVoz(alTerminar);
+      return decir(texto, { personaje });
+    },
+    duracion: duracionEstimada,
+    alCambiar: () => golpe(),
+    alFinal: () => {
+      auraApagar();
+      gancharVoz();
+      entradaRonda = null;
+      cliente.enviar({ t: 'tv.entradaLista' });   // a partir de aquí corre el reloj
+    }
+  });
+  entradaRonda.abrir();
+}
 
 function explicar() {
   if (!intro || intro.estaAbierta()) return;
@@ -234,6 +267,7 @@ const cliente = conectar({
   alEstadoRed: (e) => { $('estadoRed').textContent = e === 'conectado' ? 'Conectado' : 'Reconectando…'; },
   alMensaje(m) {
     if (m.t === 'explicar') return explicar();
+    if (m.t === 'entradaRonda') return abrirEntradaRonda(m.fase, m.titulo, m.entrada);
 
     if (m.t === 'narrador') {
       $('narracion').textContent = m.texto;

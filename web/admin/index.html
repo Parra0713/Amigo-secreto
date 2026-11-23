@@ -56,6 +56,8 @@
       <button class="boton secundario" data-accion="admin.reanudar">Reanudar</button>
       <button class="boton" data-accion="admin.revelar">Revelar siguiente</button>
       <button class="boton secundario" id="btnAuto" data-accion="admin.automatico" aria-pressed="true">Piloto automático</button>
+      <button class="boton secundario" id="btnExplicar" data-accion="admin.explicarRondas" aria-pressed="true">Explicar rondas</button>
+      <button class="boton secundario" id="btnSaltar" data-accion="admin.saltarEntrada">Saltar explicación</button>
     </div>
 
     <h2 style="margin-top:1.5rem">Resumen anónimo</h2>
@@ -119,6 +121,9 @@ $('entrar').onclick = () => {
           + (m.automatico ? (m.autoPendiente ? ' · automático: esperando para avanzar' : ' · automático: puesto') : ' · manual');
         $('btnAuto').setAttribute('aria-pressed', String(Boolean(m.automatico)));
         $('btnAuto').textContent = m.automatico ? '🤖 Automático puesto' : '✋ Manual';
+        $('btnExplicar').setAttribute('aria-pressed', String(Boolean(m.explicarRondas)));
+        $('btnExplicar').textContent = m.explicarRondas ? '🎭 Explica cada ronda' : '🔇 Sin explicaciones';
+        $('btnSaltar').classList.toggle('oculto', !m.explicandoRonda);
         $('reloj').textContent = m.cuentaRegresiva != null ? `${m.cuentaRegresiva}s` : '';
         $('resumen').innerHTML = (m.resumen || []).map((r) => `
           <tr><td>${r.apodo ?? '—'}</td><td>${r.cantidadPistas}</td>

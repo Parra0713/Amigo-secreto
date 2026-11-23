@@ -286,5 +286,177 @@
       }
     },
     "auraActiva": true
+  },
+  "rondas": {
+    "notas": "Lo que el grupier dice al empezar cada ronda. Tres momentos fijos: QUÉ va a pasar (grupier), QUÉ ves en tu celular (explicador) y QUÉ te conviene (grupier). 'ilustracion' escoge el gesto del personaje 3D; 'etiquetas' son las cifras que aparecen sobre la escena. Editarlo no requiere tocar código.",
+    "ronda1": {
+      "titulo": "Ronda uno · Compra de pistas",
+      "entrada": [
+        {
+          "id": "que",
+          "voz": "grupier",
+          "ilustracion": "monton",
+          "texto": "Frente a ti hay tres cartas… boca abajo. Hablan de la persona que te regala a ti. Las escribí yo. Con lo que ustedes mismos contestaron.",
+          "etiquetas": [
+            "3 pistas sobre quien te regala"
+          ]
+        },
+        {
+          "id": "ves",
+          "voz": "explicador",
+          "ilustracion": "compra",
+          "texto": "En tu celular vas a ver tu montón. Cada carta tiene su precio. La fácil vale una ficha. La media, dos. La difícil, cuatro. Tocas la que quieras comprar… y solo tú la lees.",
+          "etiquetas": [
+            "Fácil · 1 ficha",
+            "Media · 2",
+            "Difícil · 4"
+          ]
+        },
+        {
+          "id": "conviene",
+          "voz": "grupier",
+          "ilustracion": "fichas",
+          "texto": "La barata descarta poco. La cara te señala a alguien. Y las fichas que gastes… no vuelven. Cuando ya no quieras comprar más, tocas ya terminé.",
+          "etiquetas": [
+            "Lo que gastes no vuelve"
+          ]
+        }
+      ]
+    },
+    "ronda2": {
+      "titulo": "Ronda dos · La trampa",
+      "entrada": [
+        {
+          "id": "que",
+          "voz": "grupier",
+          "ilustracion": "trampa",
+          "texto": "Aquí empieza lo bueno. Por una sola ficha… puedes meterle una mentira a otro en su montón.",
+          "etiquetas": [
+            "1 ficha = una mentira"
+          ]
+        },
+        {
+          "id": "ves",
+          "voz": "explicador",
+          "ilustracion": "trampa",
+          "texto": "Escoges a quién, y de qué tema. Yo armo la tarjeta falsa con la respuesta real de un tercero, así que va a sonar cierta. Y si prefieres no trampear, tocas: no pongo trampa.",
+          "etiquetas": [
+            "Escoge a quién",
+            "Escoge el tema",
+            "O pasa de largo"
+          ]
+        },
+        {
+          "id": "conviene",
+          "voz": "grupier",
+          "ilustracion": "trampa",
+          "texto": "La víctima nunca va a saber cuál de sus cartas es falsa. Ni quién se la puso. Eso queda entre tú… y yo.",
+          "etiquetas": [
+            "Nadie sabrá que fuiste tú"
+          ]
+        }
+      ]
+    },
+    "ronda3": {
+      "titulo": "Ronda tres · El dilema",
+      "entrada": [
+        {
+          "id": "que",
+          "voz": "grupier",
+          "ilustracion": "dilema",
+          "texto": "Los voy a emparejar al azar. Dos personas. Dos botones. Y ni una palabra entre ustedes.",
+          "etiquetas": [
+            "Parejas al azar",
+            "En secreto"
+          ]
+        },
+        {
+          "id": "ves",
+          "voz": "explicador",
+          "ilustracion": "dilema",
+          "texto": "Cooperar, o guardar. Si los dos cooperan, ganan dos fichas cada uno y ven una pista real. Si uno coopera y el otro guarda… el que guardó se lleva tres, y el otro no se lleva nada. Si los dos guardan, no pasa nada.",
+          "etiquetas": [
+            "Ambos cooperan · +2 y +2",
+            "Uno guarda · +3 y 0",
+            "Ambos guardan · nada"
+          ]
+        },
+        {
+          "id": "conviene",
+          "voz": "grupier",
+          "ilustracion": "dilema",
+          "texto": "Es tu familia. Pero esta noche también es tu competencia. Piénsalo bien… que el tiempo corre.",
+          "etiquetas": [
+            "Nadie sabe qué eligió el otro"
+          ]
+        }
+      ]
+    },
+    "ronda4": {
+      "titulo": "Ronda cuatro · La apuesta final",
+      "entrada": [
+        {
+          "id": "que",
+          "voz": "grupier",
+          "ilustracion": "apuesta",
+          "texto": "Llegó la hora. Un nombre… y una cantidad. Nada más.",
+          "etiquetas": [
+            "Un nombre",
+            "Una cantidad"
+          ]
+        },
+        {
+          "id": "ves",
+          "voz": "explicador",
+          "ilustracion": "apuesta",
+          "texto": "Escoges a quién crees que te regala, y deslizas cuántas fichas quieres apostar. Si aciertas, te las devuelvo dobladas. Si fallas, las pierdes todas.",
+          "etiquetas": [
+            "Aciertas · x2",
+            "Fallas · pierdes"
+          ]
+        },
+        {
+          "id": "conviene",
+          "voz": "grupier",
+          "ilustracion": "fantasma",
+          "texto": "Y escucha esto con cuidado. Si la persona a la que tú le regalas se equivoca… tú ganas tres fichas. Así que te conviene que no te descubran. El que apuesta poco… poco se lleva.",
+          "etiquetas": [
+            "Si tu receptor falla · tú +3"
+          ]
+        }
+      ]
+    },
+    "revelacion": {
+      "titulo": "La revelación",
+      "entrada": [
+        {
+          "id": "que",
+          "voz": "grupier",
+          "ilustracion": "revelacion",
+          "texto": "Se acabó. Ahora sí.",
+          "etiquetas": [
+            "Se acabaron las apuestas"
+          ]
+        },
+        {
+          "id": "ves",
+          "voz": "explicador",
+          "ilustracion": "revelacion",
+          "texto": "Vamos a revelar las parejas una por una, desde quien tiene menos fichas hasta el ganador. No hay nada que tocar en el celular. Miren la pantalla.",
+          "etiquetas": [
+            "Del último al ganador"
+          ]
+        },
+        {
+          "id": "conviene",
+          "voz": "grupier",
+          "ilustracion": "revelacion",
+          "texto": "Van a ver qué pistas eran verdad… cuáles las puse yo por encargo… y quién les mintió en la cara.",
+          "etiquetas": [
+            "Se destapan las trampas"
+          ]
+        }
+      ]
+    }
   }
 }

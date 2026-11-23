@@ -3,8 +3,17 @@
   "variante": "clasica",
   "fichasIniciales": 10,
   "minimoJugadores": 2,
-  "precios": { "facil": 1, "media": 2, "dificil": 4 },
-  "rondasActivas": ["ronda1", "ronda2", "ronda3", "ronda4"],
+  "precios": {
+    "facil": 1,
+    "media": 2,
+    "dificil": 4
+  },
+  "rondasActivas": [
+    "ronda1",
+    "ronda2",
+    "ronda3",
+    "ronda4"
+  ],
   "tiempos": {
     "registroSegundos": 0,
     "ronda1Segundos": 180,
@@ -41,18 +50,57 @@
     "iniciarAlEstarTodosListos": true,
     "segundosAntesDeIniciar": 20,
     "pausaEntreRondas": 6,
-    "segundosEntreRevelaciones": 14
+    "segundosEntreRevelaciones": 14,
+    "explicarRondas": true,
+    "segundosMaximosEntrada": 60
   },
-  "desempates": ["aciertoApuesta", "menosFichasGastadasEnPistas", "apuestaRelampago"],
-  "narrador": { "vozActiva": true, "idiomaPreferido": ["es-CO", "es-MX", "es-ES", "es"] },
-  "moderacion": { "filtroGroseriasActivo": true },
-  "admin": { "pin": "2468" },
+  "desempates": [
+    "aciertoApuesta",
+    "menosFichasGastadasEnPistas",
+    "apuestaRelampago"
+  ],
+  "narrador": {
+    "vozActiva": true,
+    "idiomaPreferido": [
+      "es-CO",
+      "es-MX",
+      "es-ES",
+      "es"
+    ]
+  },
+  "moderacion": {
+    "filtroGroseriasActivo": true
+  },
+  "admin": {
+    "pin": "2468"
+  },
   "variantes": {
-    "corta": { "rondasActivas": ["ronda1", "ronda4"] },
-    "familiar": { "fichasIniciales": 15, "rondasActivas": ["ronda1", "ronda3", "ronda4"] },
+    "corta": {
+      "rondasActivas": [
+        "ronda1",
+        "ronda4"
+      ]
+    },
+    "familiar": {
+      "fichasIniciales": 15,
+      "rondasActivas": [
+        "ronda1",
+        "ronda3",
+        "ronda4"
+      ]
+    },
     "extrema": {
-      "precios": { "facil": 1, "media": 2, "dificil": 5 },
-      "ronda2": { "maxTrampasPorJugador": 2, "maxFalsasPorMonton": 2, "costoTrampa": 1, "permitirTrampaPropia": false }
+      "precios": {
+        "facil": 1,
+        "media": 2,
+        "dificil": 5
+      },
+      "ronda2": {
+        "maxTrampasPorJugador": 2,
+        "maxFalsasPorMonton": 2,
+        "costoTrampa": 1,
+        "permitirTrampaPropia": false
+      }
     }
   }
 }

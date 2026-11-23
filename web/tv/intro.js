@@ -262,11 +262,11 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
   const bocaHabla = () => { actor?.hablar(true); svg()?.classList.add('hablando'); };
 
   function pintarPaso(paso) {
-    capa.querySelector('#introTitulo').textContent = paso.titulo;
+    capa.querySelector('#introTitulo').textContent = paso.titulo || '';
     capa.querySelector('#introTexto').textContent = paso.texto;
 
     // Las cifras clave, encima de la escena: lo que se oye también se ve.
-    const etiquetas = ETIQUETAS[paso.ilustracion] || [];
+    const etiquetas = paso.etiquetas || ETIQUETAS[paso.ilustracion] || [];
     capa.querySelector('#introEtiquetas').innerHTML =
       etiquetas.map((t, i) => `<div class="chip ${i > 0 && etiquetas.length === 3 && i === 2 ? 'apagado' : ''}">${t}</div>`).join('');
     // Con personaje 3D, él es la ilustración: la lámina plana sobra.

@@ -58,6 +58,12 @@ export function registrarWebsocket(app, juego) {
 
         if (mensaje.t === 'ping') return cliente.enviar({ t: 'pong' });
 
+        // La TV avisa que terminó de explicar la ronda; a partir de ahí corre el reloj.
+        if (mensaje.t === 'tv.entradaLista') {
+          if (cliente.rol !== 'tv') return;
+          return juego.entradaTerminada('tv');
+        }
+
         // --- acciones de jugador ---
         if (ACCIONES_REGISTRO.includes(mensaje.t)) {
           if (!cliente.jugadorId) return error('NO_AUTENTICADO');
@@ -80,7 +86,9 @@ export function registrarWebsocket(app, juego) {
             'admin.reanudar': () => juego.reanudar(),
             'admin.revelar': () => juego.revelarSiguiente(),
             'admin.nueva': () => juego.nuevaPartida(),
-            'admin.automatico': () => juego.alternarAutomatico()
+            'admin.automatico': () => juego.alternarAutomatico(),
+            'admin.explicarRondas': () => juego.alternarExplicarRondas(),
+            'admin.saltarEntrada': () => juego.entradaTerminada('admin')
           };
           const accion = acciones[mensaje.t];
           if (!accion) return error('ACCION_DESCONOCIDA');

@@ -73,8 +73,10 @@ de pistas con un modelo local como mejora opcional.
 
 | Ítem | Etapa | Prioridad | Estado |
 |---|---|---|---|
-| Voces menos robóticas y más naturales | 2 | Alta | Por empezar |
-| Explicación dinámica y animada, fácil de entender | 2 | Alta | Por empezar |
+| Voces menos robóticas y más naturales | 2 | Alta | **Hecho** — Kokoro elegido a ciegas 6-0, banco pre-renderizado |
+| Voz generada fuera del hilo de la partida | 2 | Alta | **Hecho** — `server/voz-hilo.js` |
+| El grupier explica cada ronda antes de jugarla | 2 | Alta | **Hecho** — 5 entradas de 3 momentos |
+| Explicación dinámica y animada, fácil de entender | 2 | Alta | En curso — presentación de 10 láminas con 3D; falta el cortometraje |
 | Voz es-CO (investigar viabilidad) | 2 | Media | Por empezar |
 | Apuesta relámpago como ronda real | 2 | Media | Pendiente |
 | Partidas de 2 jugadores: ronda de trampa sin callejón | 2 | Media | Pendiente |

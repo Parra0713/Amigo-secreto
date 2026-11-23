@@ -37,6 +37,7 @@ const juego = crearJuego({ repositorio, log: app.log });
 const vozNeural = crearVozNeural({
   carpetaModelos: join(raiz, 'modelos'),
   carpetaCache: join(process.env.CARPETA_DATOS || join(raiz, 'data'), 'voz'),
+  enHilo: process.env.VOZ_EN_HILO !== '0',   // generar fuera del hilo que atiende la partida
   log: app.log,
   config: juego.configVoz ?? {}
 });
@@ -106,6 +107,16 @@ if (vozNeural.disponible) {
     setTimeout(() => vozNeural.precalentar(juego.frasesConApodo(apodo), { pausaMs: 80 }), 200);
   };
 }
+// Al apagar (Ctrl-C o cerrar la ventana) se cierra el hilo de voz: si no,
+// el proceso se queda vivo esperándolo.
+for (const senal of ['SIGINT', 'SIGTERM']) {
+  process.on(senal, async () => {
+    try { await vozNeural.cerrar?.(); } catch {}
+    try { await app.close(); } catch {}
+    process.exit(0);
+  });
+}
+
 app.log.info(`TV:    http://localhost:${PUERTO}/tv/`);
 app.log.info(`Celu:  http://${ipLocal()}:${PUERTO}/play/`);
 app.log.info(`Admin: http://localhost:${PUERTO}/admin/`);

@@ -93,6 +93,7 @@ Un solo socket por cliente. Mensajes `{t: tipo, ...}`.
 | `ronda3.elegir` | `{opcion:'cooperar'|'guardar'}` | está emparejado, no eligió aún |
 | `ronda4.apostar` | `{sospechosoId, monto}` | `1 <= monto <= fichas`, antes del cierre |
 | `ping` | — | mantiene viva la conexión |
+| `tv.entradaLista` | — | solo rol `tv`: avisa que terminó de explicar la ronda |
 
 **Servidor → cliente:**
 
@@ -102,6 +103,8 @@ Un solo socket por cliente. Mensajes `{t: tipo, ...}`.
 | `publico` | tv/admin/todos | fase, marcador, cuenta regresiva |
 | `narrador` | tv (y play en texto) | `{evento, texto, voz:true}` |
 | `efecto` | tv | `{tipo:'confeti'|'redoble'|'fichas', ...}` |
+| `entradaRonda` | tv / play | tv recibe el guion (`entrada`); el celular, solo `titulo` |
+| `entradaLista` | todos | terminó la explicación, ya corre el reloj |
 | `error` | quien lo causó | `{codigo, mensaje}` |
 
 **Reconexión:** el cliente guarda `jugadorId` en `localStorage` y reenvía `hola` con su
@@ -288,3 +291,21 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   un jugador se generan en segundo plano apenas entra (`alRegistrarJugador`).
 - **2026-11-23** — Control de versiones inicializado y el estado estable etiquetado como
   `v1.0.0` antes de empezar la Etapa 2.
+- **2026-11-23** — **Cada ronda se explica antes de jugarla.** El reloj de la fase ya no
+  arranca al entrar en ella: primero el grupier presenta la ronda en la TV en tres
+  momentos —qué va a pasar, qué ves en el celular, qué te conviene— y solo cuando la TV
+  avisa (`tv.entradaLista`) empieza a correr. El guion vive en `config/narrador.json`
+  (`rondas`), no en el código, y el celular recibe únicamente el título: el texto completo
+  es para la pantalla grande, donde todos miran lo mismo. Si no hay TV conectada, o si el
+  anfitrión apaga las explicaciones, el juego sigue como antes; y si la TV se cuelga, un
+  tope de 60 s (`segundosMaximosEntrada`) arranca la ronda sola. Se reutiliza la máquina
+  de la presentación (personaje 3D, gestos, etiquetas, subtítulos) en vez de escribir otra.
+- **2026-11-23** — **La voz se genera en un hilo aparte** (`server/voz-hilo.js`).
+  `sherpa-onnx` trabaja de forma síncrona: entre 300 ms y 2,6 s por frase, con el modelo
+  cargándose la primera vez. Hecho en el hilo del servidor congelaba la partida entera.
+  Se vio en el simulador con 6 y 10 jugadores: los mensajes de los celulares se
+  acumulaban detrás de la síntesis y el servidor llegaba a rechazar acciones de registro
+  con `FASE_INCORRECTA` porque se atendían diez segundos tarde, cuando la partida ya había
+  empezado. Con la voz en su propio hilo, el simulador pasa sin un solo rechazo con 6 y
+  con 10 jugadores. Si el hilo no se puede abrir o se cae, se genera en el principal: la
+  voz nunca desaparece, en el peor caso vuelve a trabar.

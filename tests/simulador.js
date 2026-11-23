@@ -42,11 +42,14 @@ async function main() {
   const carpeta = mkdtempSync(join(tmpdir(), 'plan-sim-'));
   const servidor = spawn(process.execPath, ['server/index.js'], {
     env: { ...process.env, PUERTO: String(PUERTO), CARPETA_DATOS: carpeta },
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: ["ignore","pipe","pipe"]
   });
   let logServidor = '';
   servidor.stdout.on('data', (d) => { logServidor += d; });
-  servidor.stderr.on('data', (d) => { logServidor += d; });
+  // Con DEPURAR=1 se ve el log del servidor intercalado: sirve para ver
+  // qué acción rechazó y por qué.
+  servidor.stderr.on('data', (d) => { logServidor += d; if (process.env.DEPURAR) process.stdout.write(`   [srv] ${d}`); });
+  servidor.stdout.on('data', (d) => { if (process.env.DEPURAR) process.stdout.write(`   [srv] ${d}`); });
 
   // Esperar a que el servidor responda.
   for (let i = 0; i < 40; i++) {
@@ -70,7 +73,12 @@ async function main() {
     bot.socket = await abrirSocket({ t: 'hola', rol: 'play', jugadorId: bot.id, pin: bot.pin }, (m) => {
       bot.recibido.push(m);
       if (m.t === 'vista') bot.vista = m.vista;
-      if (m.t === 'error') errores.push(`${bot.apodo}: ${m.codigo} (tras ${bot.ultimaAccion || '?'})`);
+      if (m.t === 'entradaRonda') bot.esperando = true;
+      if (m.t === 'entradaLista') bot.esperando = false;
+      if (m.t === 'error') {
+        errores.push(`${bot.apodo}: ${m.codigo} (tras ${bot.ultimaAccion || '?'})`);
+        if (process.env.DEPURAR) console.log(`   · rechazo ${m.codigo} · bot ${bot.i} · fase ${bot.vista?.fase}`);
+      }
     });
     bots.push(bot);
   }
@@ -78,8 +86,14 @@ async function main() {
   const admin = await abrirSocket({ t: 'hola', rol: 'admin', pin: '2468' }, (m) => {
     if (m.t === 'error') errores.push(`admin: ${m.codigo}`);
   });
+  let entradasExplicadas = 0;
   const tv = await abrirSocket({ t: 'hola', rol: 'tv' }, (m) => {
     if (m.t === 'narrador') narraciones.push(m.texto);
+    // La TV de verdad explica la ronda y luego avisa; aquí se simula al instante.
+    if (m.t === 'entradaRonda') {
+      entradasExplicadas++;
+      setTimeout(() => tv.send(JSON.stringify({ t: 'tv.entradaLista' })), 60);
+    }
   });
 
   // Por defecto se apaga el piloto automático para que la prueba sea determinística.
@@ -96,9 +110,12 @@ async function main() {
   await esperar(600);
 
   const fase = () => bots[0].vista?.fase;
-  const esperarFase = async (objetivo, limiteMs = 60000) => {
+  /** Espera a la fase Y a que el grupier termine de explicarla. */
+  const esperarFase = async (objetivo, limiteMs = 90000) => {
     const hasta = Date.now() + limiteMs;
     while (fase() !== objetivo && Date.now() < hasta) await esperar(200);
+    while (bots.some((b) => b.esperando) && Date.now() < hasta) await esperar(100);
+    await esperar(150);
     return fase() === objetivo;
   };
 
@@ -109,7 +126,7 @@ async function main() {
     if (!arranco) process.exit(1);
   } else {
     admin.send(JSON.stringify({ t: 'admin.iniciar' }));
-    await esperar(600);
+    await esperarFase('ronda1');
   }
 
   // --- ronda 1: todos compran lo que puedan ---
@@ -131,7 +148,8 @@ async function main() {
   console.log(`   ${compradas} pistas compradas · texto solo en las compradas: ${conTexto ? 'sí' : 'NO'}`);
 
   // --- ronda 2: trampas ---
-  if (AUTO) await esperarFase('ronda2'); else { admin.send(JSON.stringify({ t: 'admin.siguiente' })); await esperar(500); }
+  if (!AUTO) admin.send(JSON.stringify({ t: 'admin.siguiente' }));
+  await esperarFase('ronda2');
   console.log(`▶ Fase: ${fase()} — trampas`);
   for (const bot of bots) {
     const victima = bots[(bot.i + 3) % CANTIDAD];
@@ -149,7 +167,8 @@ async function main() {
   console.log(`   ${montonesCrecidos} montones recibieron al menos una falsa`);
 
   // --- ronda 3: dilema ---
-  if (AUTO) await esperarFase('ronda3'); else { admin.send(JSON.stringify({ t: 'admin.siguiente' })); await esperar(500); }
+  if (!AUTO) admin.send(JSON.stringify({ t: 'admin.siguiente' }));
+  await esperarFase('ronda3');
   console.log(`▶ Fase: ${fase()} — dilema`);
   for (const bot of bots) {
     if (!bot.vista.dilema?.emparejado) continue;
@@ -159,7 +178,10 @@ async function main() {
   await esperar(500);
 
   // --- ronda 4: apuestas ---
-  if (fase() !== 'ronda4') { if (AUTO) await esperarFase('ronda4'); else { admin.send(JSON.stringify({ t: 'admin.siguiente' })); await esperar(500); } }
+  if (fase() !== 'ronda4') {
+    if (!AUTO) admin.send(JSON.stringify({ t: 'admin.siguiente' }));
+    await esperarFase('ronda4');
+  }
   console.log(`▶ Fase: ${fase()} — apuesta final`);
   for (const bot of bots) {
     // La mitad acierta (su amigo secreto es el bot anterior), la otra mitad falla.
@@ -172,7 +194,10 @@ async function main() {
   await esperar(700);
 
   // --- revelación ---
-  if (fase() !== 'revelacion') { if (AUTO) await esperarFase('revelacion'); else { admin.send(JSON.stringify({ t: 'admin.siguiente' })); await esperar(500); } }
+  if (fase() !== 'revelacion') {
+    if (!AUTO) admin.send(JSON.stringify({ t: 'admin.siguiente' }));
+    await esperarFase('revelacion');
+  }
   console.log(`▶ Fase: ${fase()} — revelando ${CANTIDAD} parejas`);
   if (AUTO) {
     const termino = await esperarFase('fin', 20000 + CANTIDAD * 8000);
@@ -201,6 +226,7 @@ async function main() {
   marcadorFinal.forEach((j, i) => console.log(`${String(i + 1).padStart(2)}. ${j.apodo.padEnd(8)} ${j.fichas} fichas`));
   console.log(`\nFase final: ${fase()}`);
   console.log(`Narraciones emitidas: ${narraciones.length}`);
+  console.log(`Entradas de ronda explicadas: ${entradasExplicadas}`);
   console.log(`Errores rechazados por el servidor: ${errores.length}${errores.length ? ` (${[...new Set(errores)].join(', ')})` : ''}`);
   console.log(`Fugas de información: ${fugas.length ? `❌ ${fugas.join('; ')}` : '✅ ninguna'}`);
 

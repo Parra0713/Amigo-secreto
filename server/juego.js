@@ -31,6 +31,7 @@ export function crearJuego({ repositorio, log = console }) {
   const clientes = new Set();           // { enviar(msg), rol, jugadorId }
   const pines = new Map();              // pin -> jugadorId (solo en memoria)
   let automatico = config.automatico?.activo ?? true;
+  let explicarRondas = config.automatico?.explicarRondas ?? true;
   let temporizadorAuto = null;          // un solo temporizador, siempre cancelable
 
   let estado = repositorio.cargarSnapshot() || crearPartida({ config, cuestionario, semilla: `plan-${Date.now()}` });
@@ -64,6 +65,7 @@ export function crearJuego({ repositorio, log = console }) {
 
   function decidirSiguientePaso({ rondaTerminada = false } = {}) {
     if (!automatico) return;
+    if (esperandoEntrada) return;      // primero se explica la ronda, después corre
     const auto = config.automatico || {};
 
     if (estado.fase === 'registro') {
@@ -94,7 +96,10 @@ export function crearJuego({ repositorio, log = console }) {
   }
 
   const emitirTodo = () => clientes.forEach(emitir);
-  const estadoAuto = () => ({ automatico, autoPendiente: Boolean(temporizadorAuto) });
+  const estadoAuto = () => ({
+    automatico, autoPendiente: Boolean(temporizadorAuto),
+    explicarRondas, explicandoRonda: Boolean(esperandoEntrada)
+  });
   const emitirPublico = (extra = {}) => clientes.forEach((c) => {
     if (c.rol !== 'play') c.enviar({ t: 'publico', ...(c.rol === 'admin' ? vistaAdmin(estado) : vistaPublica(estado)), ...estadoAuto(), ...extra });
   });
@@ -131,14 +136,36 @@ export function crearJuego({ repositorio, log = console }) {
     if (segundos) reloj.iniciar(segundos);
   }
 
+  /* --- entrada de ronda: el grupier explica qué viene y qué hay que hacer ---
+     La ronda no empieza a correr hasta que la TV termina de explicarla (o hasta
+     que se agota el tiempo máximo, por si la TV no está abierta). */
+  let esperandoEntrada = null;
+
+  function explicarRonda(fase) {
+    const guion = textosNarrador.rondas?.[fase];
+    const activo = explicarRondas && config.automatico?.explicarRondas !== false;
+    if (!guion || !activo || ![...clientes].some((c) => c.rol === 'tv')) return false;
+
+    clientes.forEach((c) => {
+      if (c.rol === 'play') c.enviar({ t: 'entradaRonda', fase, titulo: guion.titulo });
+      else c.enviar({ t: 'entradaRonda', fase, titulo: guion.titulo, entrada: guion.entrada });
+    });
+
+    clearTimeout(esperandoEntrada);
+    const maximo = (config.automatico?.segundosMaximosEntrada ?? 60) * 1000;
+    esperandoEntrada = setTimeout(() => api.entradaTerminada('tiempo'), maximo);
+    return true;
+  }
+
   // ---------- entrada ----------
 
   const api = {
     get estado() { return estado; },
     get config() { return config; },
-    /** Guion de la presentación y ajustes de voz, para la TV. */
+    /** Guion de la presentación, entradas de ronda y ajustes de voz, para la TV. */
     explicacionPublica: () => ({
       pasos: textosNarrador.explicacion?.pasos ?? [],
+      rondas: textosNarrador.rondas ?? {},
       voces: textosNarrador.voces ?? {}
     }),
 
@@ -274,9 +301,31 @@ export function crearJuego({ repositorio, log = console }) {
       if (Object.keys(estado.jugadores).length < minimo) throw new Error('FALTAN_JUGADORES');
       contar('bienvenida');
       aplicarEfectos(avanzar(estado));
-      iniciarRelojDeFase();
+      if (!explicarRonda(estado.fase)) iniciarRelojDeFase();
     },
-    siguienteRonda() { cancelarAuto(); aplicarEfectos(avanzar(estado)); iniciarRelojDeFase(); },
+    siguienteRonda() {
+      cancelarAuto();
+      aplicarEfectos(avanzar(estado));
+      if (!explicarRonda(estado.fase)) iniciarRelojDeFase();
+    },
+
+    /** La TV avisó que terminó de explicar la ronda (o se saltó la explicación). */
+    entradaTerminada(motivo = 'tv') {
+      clearTimeout(esperandoEntrada);
+      esperandoEntrada = null;
+      clientes.forEach((c) => c.enviar({ t: 'entradaLista', fase: estado.fase }));
+      log.info?.(`entrada de ronda ${estado.fase} terminada (${motivo})`);
+      iniciarRelojDeFase();
+      emitirTodo();
+      decidirSiguientePaso();   // la revelación automática arranca después de explicar
+    },
+
+    /** El anfitrión puede apagar las explicaciones de ronda (segunda partida de la noche). */
+    alternarExplicarRondas() {
+      explicarRondas = !explicarRondas;
+      emitirPublico();
+      return explicarRondas;
+    },
     pausar() { cancelarAuto(); reloj.detener(); emitirPublico({ pausada: true }); },
     reanudar() { iniciarRelojDeFase(); decidirSiguientePaso(); },
     revelarSiguiente() { cancelarAuto(); aplicarEfectos(aplicar(estado, { t: 'revelar.siguiente' })); },

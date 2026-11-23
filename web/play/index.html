@@ -60,6 +60,7 @@ let sesion = leer('plan.sesion');   // { id, pin, apodo }
 let cuestionario = null;
 let ultimaVista = null;
 let paso = 'inicio';                 // inicio | cuestionario | pareja | tarjetas | juego
+let explicandoRonda = false;         // mientras la TV explica, el celular espera
 
 const pintar = (html) => { vista.innerHTML = html; };
 const mostrarError = (texto) => {
@@ -106,6 +107,19 @@ const cliente = conectar({
   alMensaje(m) {
     // El grupier archivó la partida: esta sesión ya no sirve, hay que registrarse otra vez.
     if (m.t === 'reiniciada') return reiniciarSesion();
+
+    // Mientras el grupier explica la ronda, en el celular no hay nada que tocar.
+    if (m.t === 'entradaRonda') {
+      explicandoRonda = true;
+      return pintar(`<h2>${m.titulo || 'Atención'}</h2>
+        <p class="tenue">El grupier está explicando esta ronda. Mira la TV.</p>
+        <p class="micro">En un momento te aparece aquí lo que tienes que hacer.</p>`);
+    }
+    if (m.t === 'entradaLista') {
+      explicandoRonda = false;
+      if (ultimaVista) pintarJuego(ultimaVista, null);
+      return;
+    }
     if (m.t === 'error') return mostrarError(ERRORES[m.codigo] || m.codigo);
     if (m.t === 'narrador') return void ($('narracion').textContent = m.texto);
     if (m.t === 'vista') {
@@ -113,7 +127,7 @@ const cliente = conectar({
       $('miApodo').textContent = `${m.vista.yo.avatar} ${m.vista.yo.apodo}`;
       $('misFichas').textContent = `${m.vista.yo.fichas} 🪙`;
       $('misFichas').classList.remove('oculto');
-      if (paso === 'juego') pintarJuego(m.vista, m.cuentaRegresiva);
+      if (paso === 'juego' && !explicandoRonda) pintarJuego(m.vista, m.cuentaRegresiva);
     }
   }
 });

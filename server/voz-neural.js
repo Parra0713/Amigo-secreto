@@ -31,7 +31,7 @@ function detectarMotor(carpeta) {
   return null;
 }
 
-export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, config = {} }) {
+export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, config = {}, enHilo = false }) {
   const apagada = {
     disponible: false, motores: [], motivo: 'no-iniciado',
     sintetizar: async () => null, precalentar: async () => 0,
@@ -159,6 +159,56 @@ export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, co
     return audio.samples.length / audio.sampleRate;
   }
 
+  // ---------- el hilo que genera sin congelar la partida ----------
+  let hilo = null;              // null: sin abrir · 'roto': no se pudo, se genera aquí
+  let siguienteId = 1;
+  const pendientes = new Map();
+
+  function abrirHilo() {
+    try {
+      const { Worker } = require('node:worker_threads');
+      const w = new Worker(new URL('./voz-hilo.js', import.meta.url), {
+        workerData: { carpetaModelos, carpetaCache, config }
+      });
+      w.unref();                // no debe impedir que el servidor cierre
+      w.on('message', (m) => {
+        if (m.t === 'listo') return log.info?.(`voz: hilo listo (${m.motores?.join(', ') || m.motivo})`);
+        if (m.t !== 'hecho') return;
+        const espera = pendientes.get(m.id);
+        if (!espera) return;
+        pendientes.delete(m.id);
+        if (m.error) espera.rechazar(new Error(m.error));
+        else espera.cumplir(m.segundos);
+      });
+      const caer = (motivo) => {
+        hilo = 'roto';
+        log.warn?.(`voz: el hilo falló (${motivo}); se genera en el hilo principal`);
+        pendientes.forEach(({ rechazar }) => rechazar(new Error('HILO_CAIDO')));
+        pendientes.clear();
+      };
+      w.on('error', (e) => caer(e.message));
+      w.on('exit', (codigo) => { if (hilo === w) caer(`salió con ${codigo}`); });   // si ya cerramos, hilo !== w
+      return w;
+    } catch (e) {
+      log.warn?.(`voz: no se pudo abrir el hilo (${e.message})`);
+      return 'roto';
+    }
+  }
+
+  /** Pide el audio al hilo; si no hay hilo, lo hace aquí mismo. */
+  function generarFuera(texto, personaje, opciones) {
+    if (hilo === null) hilo = abrirHilo();
+    if (hilo === 'roto') return Promise.resolve(generar(texto, personaje, opciones));
+    const id = siguienteId++;
+    return new Promise((cumplir, rechazar) => {
+      pendientes.set(id, { cumplir, rechazar });
+      hilo.postMessage({ t: 'generar', id, texto, personaje, opciones });
+    }).catch((e) => {
+      if (e.message !== 'HILO_CAIDO') throw e;
+      return generar(texto, personaje, opciones);   // reintento local, una vez
+    });
+  }
+
   /**
    * Devuelve la ruta del audio de una frase. Primero mira el banco
    * pre-renderizado; si no está, la genera con el motor rápido.
@@ -180,8 +230,9 @@ export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, co
       const t0 = Date.now();
       // En vivo manda la velocidad: Piper, salvo que solo exista Kokoro.
       const rapido = definiciones.vits ? 'vits' : undefined;
-      const dur = generar(limpio, personaje, { forzarMotor: opciones.forzarMotor || rapido, destino: archivo });
-      log.info?.(`voz en vivo: ${dur.toFixed(1)}s en ${Date.now() - t0} ms — "${limpio.slice(0, 30)}…"`);
+      const peticion = { forzarMotor: opciones.forzarMotor || rapido, destino: archivo };
+      const dur = enHilo ? await generarFuera(limpio, personaje, peticion) : generar(limpio, personaje, peticion);
+      log.info?.(`voz en vivo: ${dur.toFixed(1)}s en ${Date.now() - t0} ms${enHilo ? ' (en hilo)' : ''} — "${limpio.slice(0, 30)}…"`);
       podar();
       return archivo;
     })();
@@ -244,6 +295,16 @@ export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, co
     sintetizar,
     prerenderizar,
     precalentar,
+    generarSync: generar,   // lo llama server/voz-hilo.js
+    /** Cierra el hilo de voz. Sin esto, el proceso queda vivo esperándolo. */
+    cerrar: async () => {
+      if (!hilo || hilo === 'roto') return;
+      const w = hilo;
+      hilo = 'roto';
+      pendientes.forEach(({ rechazar }) => rechazar(new Error('HILO_CAIDO')));
+      pendientes.clear();
+      await w.terminate();
+    },
     estado: () => ({
       disponible: true,
       motores: motoresDisponibles,

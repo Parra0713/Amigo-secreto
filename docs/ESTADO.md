@@ -3,8 +3,19 @@
 Informe del estado real, no del deseado. Lo verificado está marcado como tal, y lo que
 solo se puede comprobar con ojos, oídos y celulares reales también.
 
-> **Instantánea de la Etapa 1** (primera versión jugable). El rumbo y los pendientes vivos
-> están en `docs/HOJA_DE_RUTA.md`; el encargo de la Etapa 2 está en `docs/PROMPT_ETAPA_2.md`.
+> **Instantánea de la Etapa 1** (primera versión jugable), con las novedades de la Etapa 2
+> anotadas abajo. El rumbo y los pendientes vivos están en `docs/HOJA_DE_RUTA.md`; el
+> encargo de la Etapa 2 está en `docs/PROMPT_ETAPA_2.md`.
+
+### Novedades de la Etapa 2 (23 de noviembre)
+
+| Qué | Dónde | Comprobado con |
+|---|---|---|
+| Voz neuronal Kokoro elegida por escucha a ciegas (6-0 sobre Piper) | `config/narrador.json`, `docs/INVESTIGACION_VOZ.md` §5 | 21 votos en 2 rondas de laboratorio |
+| Cadena de efectos podada (empató 3-3: no aportaba) | `config/narrador.json` | la misma prueba a ciegas |
+| Banco pre-renderizado: 66 frases × 2 tomas, 60 MB | `npm run voces` | reproducción en 5 ms contra 2,7 s en vivo |
+| Voz generada en un hilo aparte: la partida no se congela | `server/voz-hilo.js` | simulador con 6 y 10 jugadores, 0 rechazos |
+| El grupier explica cada ronda antes de que corra el reloj | `config/narrador.json` (`rondas`), `server/juego.js` | `tests/entradas.test.js` |
 
 ---
 
@@ -13,7 +24,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 | | |
 |---|---|
 | **Fases del plan original** | Las 6, completas |
-| **Pruebas automáticas** | **103, todas en verde** (~8 s) |
+| **Pruebas automáticas** | **122, todas en verde** (~6 s) |
 | **Partida de extremo a extremo** | ✅ con 2, 4, 5, 6, 8, 10 y 15 jugadores virtuales |
 | **Modo automático sin tocar el panel** | ✅ arranca, juega y revela solo |
 | **Fugas de información secreta** | ✅ ninguna, verificado por jugador |
@@ -68,7 +79,7 @@ Sin paso de build: HTML, CSS y JS planos con módulos nativos.
 | Cambiar una regla cambia el juego | ✅ | Prueba de la variante corta |
 | Un no técnico lo arranca en <10 min | ⚠️ | La guía está escrita; **no se ha probado con una persona** |
 
-## 4. Pruebas: qué cubren las 103
+## 4. Pruebas: qué cubren (122 al 23 de noviembre)
 
 | Archivo | Nº | Qué asegura |
 |---|---|---|

@@ -7,6 +7,9 @@ y una apuesta final. El sorteo se hace aparte; esto solo maneja la revelación.
 - **PC anfitrión** con Windows conectado a la TV: sirve el juego y muestra la pantalla grande.
 - **Celulares** de los jugadores (5 a 15) entran por el WiFi de la casa, sin instalar nada.
 - **Funciona sin internet.** Cero recursos externos en tiempo de ejecución.
+- **Voz propia offline.** Dos personajes con voz neuronal (Kokoro), pre-renderizada antes
+  de jugar y generada en un hilo aparte para no trabar la partida.
+- **El grupier explica cada ronda** en la TV antes de que empiece a correr el reloj.
 - Español de Colombia en toda la interfaz.
 
 👉 Si no eres técnico, lee **[docs/GUIA_ANFITRION.md](docs/GUIA_ANFITRION.md)**.
