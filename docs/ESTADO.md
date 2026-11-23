@@ -11,11 +11,13 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 
 | Qué | Dónde | Comprobado con |
 |---|---|---|
-| Voz neuronal Kokoro elegida por escucha a ciegas (6-0 sobre Piper) | `config/narrador.json`, `docs/INVESTIGACION_VOZ.md` §5 | 21 votos en 2 rondas de laboratorio |
+| Voz neuronal Kokoro elegida por escucha a ciegas (6-0 sobre Piper) | `config/narrador.json`, `docs/INVESTIGACION_VOZ.md` §8 | 21 votos en 2 rondas de laboratorio |
 | Cadena de efectos podada (empató 3-3: no aportaba) | `config/narrador.json` | la misma prueba a ciegas |
 | Banco pre-renderizado: 66 frases × 2 tomas, 60 MB | `npm run voces` | reproducción en 5 ms contra 2,7 s en vivo |
 | Voz generada en un hilo aparte: la partida no se congela | `server/voz-hilo.js` | simulador con 6 y 10 jugadores, 0 rechazos |
 | El grupier explica cada ronda antes de que corra el reloj | `config/narrador.json` (`rondas`), `server/juego.js` | `tests/entradas.test.js` |
+| El tutorial usa la voz probada (`em_santa` en los dos personajes) | `config/narrador.json` | pruebas 3 y 4 del laboratorio |
+| Las láminas no pasan antes de poderse leer, y nada habla encima | `web/tv/intro.js`, `web/tv/index.html` | `tests/entradas.test.js` |
 
 ---
 

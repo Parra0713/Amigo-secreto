@@ -91,5 +91,20 @@ try {
 console.log('\n');
 console.log(`  Listo en ${Math.round((Date.now() - inicio) / 1000)} segundos.`);
 console.log(`  ${generadas} audios nuevos, ${saltadas} frases ya estaban.`);
-console.log(`  El banco ocupa ${(bytes / 1024 / 1024).toFixed(1)} MB en data/voz/banco.\n`);
+console.log(`  El banco ocupa ${(bytes / 1024 / 1024).toFixed(1)} MB en data/voz/banco.`);
+
+// Cambiar de voz o de motor deja atrás los audios viejos: la clave del banco
+// incluye motor y voz, así que no se sirven, solo ocupan disco.
+const sobra = voz.huerfanos(frases);
+if (sobra.archivos.length) {
+  const mb = (sobra.bytes / 1024 / 1024).toFixed(1);
+  if (process.argv.includes('--limpiar')) {
+    const { borrados } = voz.limpiarBanco(frases);
+    console.log(`  Se borraron ${borrados} audios de voces anteriores (${mb} MB liberados).`);
+  } else {
+    console.log(`  Sobran ${sobra.archivos.length} audios de voces anteriores (${mb} MB).`);
+    console.log('  Córrelo con  npm run voces -- --limpiar  para borrarlos.');
+  }
+}
+console.log('');
 console.log('  Arranca el juego con iniciar.bat: el grupier ya habla con la voz buena.\n');

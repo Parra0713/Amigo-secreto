@@ -301,6 +301,21 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   anfitrión apaga las explicaciones, el juego sigue como antes; y si la TV se cuelga, un
   tope de 60 s (`segundosMaximosEntrada`) arranca la ronda sola. Se reutiliza la máquina
   de la presentación (personaje 3D, gestos, etiquetas, subtítulos) en vez de escribir otra.
+- **2026-11-23** — **El tutorial pasa a la voz que ganó a ciegas.** El explicador tenía
+  `ef_dora` por diseño, sin evidencia; las cuatro pruebas del laboratorio se corrieron con
+  `em_santa`, también en el papel del explicador y con música encima. Ahora los dos
+  personajes comparten timbre y se distinguen por registro: el explicador más rápido,
+  brillante y seco; el grupier más lento, con cuerpo y sala. Queda pendiente, si se quiere
+  un timbre propio para el explicador, comparar `em_santa` contra `em_alex` con el mismo
+  protocolo. Cambiar de voz dejó 128 audios huérfanos en el banco (35 MB), así que
+  `npm run voces -- --limpiar` ahora los barre.
+- **2026-11-23** — **Las láminas no pasan hasta que se puedan leer.** Tres cosas las
+  adelantaban: la narración del servidor hablaba encima de la explicación (y al terminar
+  disparaba el "ya acabé" de la lámina), el aviso de una voz vieja movía la lámina nueva, y
+  no había tiempo mínimo en pantalla. Ahora cada lámina lleva una ficha —los avisos con
+  ficha vieja se ignoran—, un mínimo de 4,2 s en las entradas de ronda con 1,1 s de respiro
+  entre momentos, y un tope por si el audio nunca avisa. Mientras hay una explicación
+  abierta, la narración se ve en la banda pero no se oye.
 - **2026-11-23** — **La voz se genera en un hilo aparte** (`server/voz-hilo.js`).
   `sherpa-onnx` trabaja de forma síncrona: entre 300 ms y 2,6 s por frase, con el modelo
   cargándose la primera vez. Hecho en el hilo del servidor congelaba la partida entera.

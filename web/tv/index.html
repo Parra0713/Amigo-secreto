@@ -171,6 +171,9 @@ const ajustesVoz = {};
 let guionRondas = {};
 let entradaRonda = null;      // la mini-presentación que abre cada ronda
 
+/** ¿Hay una explicación en pantalla? Entonces manda su voz, no la narración. */
+const explicando = () => Boolean(intro?.estaAbierta?.() || entradaRonda);
+
 fetch('/api/explicacion').then((r) => r.json()).then(({ pasos, voces, rondas }) => {
   guionRondas = rondas || {};
   configurarVoz(voces);
@@ -207,6 +210,8 @@ function abrirEntradaRonda(fase, titulo, partes) {
 
   entradaRonda = crearIntro({
     pasos: partes.map((p) => ({ ...p, titulo })),
+    pausa: 1100,          // un respiro entre momentos, que esto es información nueva
+    minimo: 4200,         // y tiempo de sobra para leerlo en la TV desde el sofá
     personaje: actor,
     montarPersonaje: (caja) => caja.insertAdjacentElement('afterbegin', cajaGrupier),
     desmontarPersonaje: () => $('centro').querySelector('.columnaIzquierda')?.prepend(cajaGrupier),
@@ -274,7 +279,10 @@ const cliente = conectar({
       $('narracion').classList.remove('entra');
       void $('narracion').offsetWidth;
       $('narracion').classList.add('entra');
-      if (m.voz) decir(m.texto, { personaje: m.personaje || 'grupier' });
+      // Mientras el grupier explica, nada le habla encima: una narración
+      // cortaba el audio de la lámina y la hacía pasar antes de tiempo.
+      // El texto igual se ve en la banda de abajo.
+      if (m.voz && !explicando()) decir(m.texto, { personaje: m.personaje || 'grupier' });
     }
 
     if (m.t === 'efecto') {

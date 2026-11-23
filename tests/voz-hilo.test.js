@@ -61,3 +61,25 @@ test('con modelos instalados, el hilo devuelve audio de verdad', async (t) => {
   // Sin cerrar, el proceso de pruebas se queda esperando al hilo.
   await voz.cerrar();
 });
+
+test('cambiar de voz deja audios huérfanos y se pueden barrer', async (t) => {
+  const modelos = join(raiz, 'modelos');
+  if (!existsSync(modelos)) return t.skip('sin modelos instalados');
+  const banco = mkdtempSync(join(tmpdir(), 'banco-'));
+  const voz = crearVozNeural({
+    carpetaModelos: modelos, carpetaCache: banco,
+    log: { info: () => {}, warn: () => {} },
+    config: { grupier: { neural: { motor: 'vits', sid: 0, velocidad: 1 } } }
+  });
+  if (!voz.disponible) return t.skip(`voz no disponible (${voz.motivo})`);
+
+  const frase = [{ texto: 'Una frase de prueba.', personaje: 'grupier' }];
+  await voz.prerenderizar(frase, { tomas: 1 });
+  // La misma frase, pero ahora ya no está en la lista: queda huérfana.
+  assert.equal(voz.huerfanos([]).archivos.length, 1);
+  assert.equal(voz.huerfanos(frase).archivos.length, 0, 'lo vigente no se toca');
+
+  const { borrados } = voz.limpiarBanco([]);
+  assert.equal(borrados, 1);
+  assert.equal(voz.huerfanos([]).archivos.length, 0);
+});

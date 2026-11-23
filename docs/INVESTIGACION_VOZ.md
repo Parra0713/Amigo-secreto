@@ -87,7 +87,7 @@ síntesis falla con *"phoneme_codepoints is empty"*. La 1.13.6 funciona tal cual
 - El objetivo de esta noche era que el juego funcione. El narrador actual, con dos voces,
   prosodia trabajada y troceo por frases, ya cumple.
 
-## 7. Cómo se dejó preparado el terreno
+## 6. Cómo se dejó preparado el terreno
 
 La forma de la pieza que falta ya está decidida, para que sea un cambio aislado:
 
@@ -101,17 +101,7 @@ La forma de la pieza que falta ya está decidida, para que sea un cambio aislado
 
 *(Este plan es el que se ejecutó; ver la sección 4.)*
 
-## 8. Fuentes
-
-- AssemblyAI, *Best free TTS APIs and open-source text-to-speech models (2026)* — tabla de licencias y último commit.
-- Cartesia, *Best open-source TTS models, compared by license*.
-- localaimaster, *Best Local TTS Without a GPU* — estrellas y últimos empujes de Piper y sherpa-onnx.
-- Readium, *SpeechSynthesis in browsers and OSes* — las voces "natural" requieren conexión.
-- `huggingface.co/rhasspy/piper-voices` y `huggingface.co/PYTHAI/voaice` — licencia por voz.
-- `huggingface.co/hexgrad/Kokoro-82M` (VOICES.md) — voces en español de Kokoro.
-- Documentación de la API de JavaScript de sherpa-onnx (`sherpa-onnx-node`).
-
-## 8. Etapa 2: hacia una voz natural (23 de noviembre de 2026)
+## 7. Etapa 2: hacia una voz natural (23 de noviembre de 2026)
 
 La conclusión de esta investigación (sherpa-onnx + una voz Piper) respondió a la pregunta de
 la Etapa 1: *¿hay algo mejor que la voz de Windows, offline y sin volver el proyecto
@@ -133,3 +123,60 @@ Hipótesis a descartar con un laboratorio de escucha A/B, antes de cambiar nada:
 Oportunidad principal: el texto es casi todo predecible y los nombres se conocen en el
 registro, así que se puede **pre-renderizar con un modelo más lento y mejor** (varias tomas
 por frase) en lugar de sintetizar en vivo.
+
+## 8. Resultados de la escucha a ciegas (23 de noviembre de 2026)
+
+Las cinco hipótesis de la sección 7 no se resolvieron por reputación de los modelos sino
+escuchando, a ciegas, en el PC y los parlantes de la casa. El laboratorio está en
+`/laboratorio/` y guarda los votos en el navegador.
+
+### Ronda 1 — y por qué hubo que rehacer el laboratorio
+
+La primera versión dejaba cambiar libremente de motor, de texto y de efectos. Resultado:
+**6 de 9 comparaciones quedaron en empate** y las dos hipótesis principales —el modelo y
+la cadena de efectos— nunca se compararon de frente. El empate no era la respuesta: era el
+síntoma de un instrumento mal hecho. Se reconstruyó como **protocolo guiado**: cuatro
+pruebas fijas, tres comparaciones cada una, A y B asignados al azar y revelados solo
+después de votar.
+
+### Ronda 2 — las cuatro pruebas
+
+| Prueba | Qué se comparó | Resultado | Decisión |
+|---|---|---|---|
+| 1. Procesamiento | Voz cruda contra la cadena completa del grupier | **3 empates de 3** | **Se podó la cadena.** Si no se oye, no está aportando |
+| 2. Texto | Frase escrita para leerse contra escrita para decirse | 2-1 a favor del oído | **No concluyente** con tres votos. Se mantiene el texto para el oído por otras razones, no por esta prueba |
+| 3. Modelo (grupier) | Piper `es_MX-claude-high` contra Kokoro `em_santa` | **3-0 a Kokoro** | **Se adoptó Kokoro** |
+| 4. Explicador con música | Los mismos dos, con la música del juego encima | **3-0 a Kokoro** | Confirma el cambio donde más importa: entender sin esfuerzo |
+
+Kokoro ganó **6-0** entre las pruebas 3 y 4. Es el único resultado del laboratorio lo
+bastante claro para decidir sobre él sin hacer más comparaciones.
+
+### Lo que esto obligó a cambiar en la arquitectura
+
+Kokoro corre a ~1,2× tiempo real en esta CPU: no sirve para hablar en vivo. De ahí el
+banco **pre-renderizado** (66 frases fijas × 2 tomas, 37 MB) y Piper como motor rápido de
+reserva para lo imprevisto. La clave del banco incluye motor y voz, así que cambiar de
+modelo invalida el banco viejo en vez de servir audio equivocado;
+`npm run voces -- --limpiar` barre lo que quedó de la voz anterior.
+
+### Una cosa que el laboratorio **no** probó
+
+Las tres voces en español de Kokoro (`ef_dora`, `em_alex`, `em_santa`) nunca se compararon
+entre sí: las cuatro pruebas usaron `em_santa` en los dos papeles. El explicador había
+quedado con `ef_dora` por diseño, sin evidencia, y el 23 de noviembre se pasó a `em_santa`
+**porque es la única voz probada**, incluida la prueba con música encima.
+
+Consecuencia honesta: los dos personajes comparten timbre y se distinguen por registro
+—el explicador más rápido, brillante y seco; el grupier más lento, con cuerpo y sala—.
+Si se quiere un timbre distinto para el explicador, la prueba pendiente es
+`em_santa` contra `em_alex` con la música encima, tres comparaciones, el mismo protocolo.
+
+## 9. Fuentes
+
+- AssemblyAI, *Best free TTS APIs and open-source text-to-speech models (2026)* — tabla de licencias y último commit.
+- Cartesia, *Best open-source TTS models, compared by license*.
+- localaimaster, *Best Local TTS Without a GPU* — estrellas y últimos empujes de Piper y sherpa-onnx.
+- Readium, *SpeechSynthesis in browsers and OSes* — las voces "natural" requieren conexión.
+- `huggingface.co/rhasspy/piper-voices` y `huggingface.co/PYTHAI/voaice` — licencia por voz.
+- `huggingface.co/hexgrad/Kokoro-82M` (VOICES.md) — voces en español de Kokoro.
+- Documentación de la API de JavaScript de sherpa-onnx (`sherpa-onnx-node`).

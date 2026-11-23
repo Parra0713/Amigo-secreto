@@ -98,3 +98,32 @@ test('el celular manda mirar la TV mientras se explica', () => {
 test('las etiquetas propias de cada lámina tienen prioridad sobre el mapa general', () => {
   assert.match(leer('web/tv/intro.js'), /paso\.etiquetas \|\| ETIQUETAS\[paso\.ilustracion\]/);
 });
+
+test('nada adelanta una lámina antes de que se pueda leer', () => {
+  const intro = leer('web/tv/intro.js');
+  // Ficha por lámina: el aviso de una voz vieja no mueve la lámina nueva.
+  assert.match(intro, /const mia = \+\+ficha/);
+  assert.match(intro, /if \(mia !== ficha\) return/);
+  // Tiempo mínimo en pantalla, aunque la voz termine antes.
+  assert.match(intro, /minimo - \(Date\.now\(\) - t0\)/);
+  // Y un tope, por si el audio nunca avisa que terminó.
+  assert.match(intro, /tope = setTimeout/);
+});
+
+test('las entradas de ronda respiran más que la presentación', () => {
+  const tv = leer('web/tv/index.html');
+  const bloque = tv.match(/function abrirEntradaRonda[\s\S]*?\n\}/)[0];
+  const pausa = Number(bloque.match(/pausa: (\d+)/)[1]);
+  const minimo = Number(bloque.match(/minimo: (\d+)/)[1]);
+  assert.ok(pausa >= 1000, 'un respiro entre momentos');
+  assert.ok(minimo >= 4000, 'tiempo para leerlo desde el sofá');
+});
+
+test('la narración no habla encima de la explicación', () => {
+  const tv = leer('web/tv/index.html');
+  assert.match(tv, /if \(m\.voz && !explicando\(\)\) decir/);
+  // Pero el texto sí se sigue viendo en la banda del narrador.
+  const bloque = tv.match(/if \(m\.t === 'narrador'\)[\s\S]*?\n    \}/)[0];
+  assert.match(bloque, /\$\('narracion'\)\.textContent = m\.texto/);
+  assert.match(tv, /const explicando = \(\) =>/);
+});

@@ -2,7 +2,7 @@
    Voz neuronal offline, con varios motores.
 
    Decidido por escucha a ciegas el 23 de noviembre de 2026 (12 comparaciones,
-   ver docs/INVESTIGACION_VOZ.md §5): Kokoro gana 6-0 sobre Piper, incluida la
+   ver docs/INVESTIGACION_VOZ.md §8): Kokoro gana 6-0 sobre Piper, incluida la
    prueba de inteligibilidad con la música encima. Pero Kokoro corre a ~1,2x
    tiempo real: inservible para hablar en vivo.
 
@@ -272,6 +272,38 @@ export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, co
     return { generadas, saltadas };
   }
 
+  /**
+   * Audios del banco que ya no corresponden a ninguna frase vigente: quedan
+   * cuando se cambia de voz o de motor, porque la clave incluye los dos.
+   */
+  function huerfanos(frases) {
+    const vigentes = new Set(frases.map(({ texto, personaje }) => clave(String(texto).trim().slice(0, 600), personaje)));
+    const archivos = [];
+    let bytes = 0;
+    for (const [k, nombres] of Object.entries(indice)) {
+      if (vigentes.has(k)) continue;
+      for (const nombre of nombres) {
+        const ruta = join(carpetaBanco, nombre);
+        if (!existsSync(ruta)) continue;
+        archivos.push({ clave: k, nombre, ruta });
+        try { bytes += statSync(ruta).size; } catch {}
+      }
+    }
+    return { archivos, bytes };
+  }
+
+  /** Borra esos audios y los saca del índice. Devuelve cuántos y cuánto. */
+  function limpiarBanco(frases) {
+    const { archivos, bytes } = huerfanos(frases);
+    const claves = new Set();
+    for (const { ruta, clave: k } of archivos) {
+      try { unlinkSync(ruta); claves.add(k); } catch (e) { log.warn?.(`no pude borrar ${ruta}: ${e.message}`); }
+    }
+    for (const k of claves) delete indice[k];
+    if (claves.size) guardarIndice();
+    return { borrados: archivos.length, bytes };
+  }
+
   /** Genera en segundo plano, sin bloquear la partida. */
   async function precalentar(frases, { pausaMs = 150 } = {}) {
     let hechas = 0;
@@ -296,6 +328,8 @@ export function crearVozNeural({ carpetaModelos, carpetaCache, log = console, co
     prerenderizar,
     precalentar,
     generarSync: generar,   // lo llama server/voz-hilo.js
+    huerfanos,
+    limpiarBanco,
     /** Cierra el hilo de voz. Sin esto, el proceso queda vivo esperándolo. */
     cerrar: async () => {
       if (!hilo || hilo === 'roto') return;

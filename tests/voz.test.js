@@ -41,10 +41,12 @@ test('los dos personajes siguen siendo distinguibles, aunque la cadena se podó'
   const { voces } = JSON.parse(leer('config/narrador.json'));
   const g = voces.grupier.efectos, e = voces.explicador.efectos;
 
-  // La diferencia ya no la hace el procesamiento sino la voz del modelo:
-  // son dos voces distintas de Kokoro, elegidas por escucha a ciegas.
-  assert.notEqual(voces.grupier.neural.sid, voces.explicador.neural.sid);
-  assert.notEqual(voces.grupier.neural.voz, voces.explicador.neural.voz);
+  // Los dos usan la voz que ganó a ciegas (em_santa): era la única probada,
+  // también en el papel del explicador y con música encima. Así que la
+  // diferencia la hace el registro, no el timbre.
+  assert.equal(voces.grupier.neural.voz, voces.explicador.neural.voz);
+  assert.ok(voces.explicador.neural.velocidad > voces.grupier.neural.velocidad,
+    'el explicador habla más rápido que el grupier');
 
   // Y queda una diferencia de tono y de espacio, mucho más leve que antes.
   assert.ok(g.velocidad < e.velocidad, 'el grupier sigue algo más lento y grave');
@@ -143,7 +145,10 @@ test('las voces se eligieron por escucha a ciegas, y queda registrado', () => {
   const { voces } = JSON.parse(leer('config/narrador.json'));
   assert.equal(voces.grupier.neural.motor, 'kokoro');
   assert.equal(voces.explicador.neural.motor, 'kokoro');
-  assert.notEqual(voces.grupier.neural.sid, voces.explicador.neural.sid, 'dos voces distintas');
+  // Prueba 3 y 4 del laboratorio: Kokoro em_santa (sid 53) ganó 6-0 sobre Piper,
+  // incluida la comparación del explicador con la música encima.
+  assert.equal(voces.grupier.neural.sid, 53);
+  assert.equal(voces.explicador.neural.sid, 53, 'el tutorial usa la voz que ganó');
   // La cadena de efectos quedó podada tras empatar contra la voz cruda.
   assert.equal(voces.grupier.efectos.sombra, 0);
   assert.equal(voces.grupier.efectos.susurro, 0);

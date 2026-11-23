@@ -185,7 +185,7 @@
     ]
   },
   "voces": {
-    "notas": "Dos personajes con voz propia. 'neural' dice con qué motor y qué voz se genera (decidido por escucha a ciegas: Kokoro ganó 6-0 sobre Piper). 'efectos' es el procesamiento en el navegador: se podó a casi nada porque en la prueba a ciegas la cadena completa empató 3-3 contra la voz cruda, es decir, no aportaba naturalidad. 'sintesis' solo aplica al motor rápido de respaldo.",
+    "notas": "Dos personajes. 'neural' dice con qué motor y qué voz se genera. La escucha a ciegas del 23-11-2026 eligió Kokoro em_santa (sid 53) y es la que usan los dos: era la única probada, también con música encima y en el papel del explicador. Se distinguen por registro —velocidad y ecualización—, no por timbre. 'efectos' es el procesamiento en el navegador: se podó a casi nada porque la cadena completa empató 3-3 contra la voz cruda. 'sintesis' solo aplica al motor rápido de respaldo.",
     "grupier": {
       "rate": 0.88,
       "pitch": 0.55,
@@ -259,19 +259,19 @@
         "velocidad": 1.0
       },
       "efectos": {
-        "notas": "Limpio a propósito: tiene que entenderse de una, con ruido en la sala.",
+        "notas": "Limpio a propósito: tiene que entenderse de una, con ruido en la sala. Comparte la voz del grupier (em_santa, la única que ganó a ciegas), así que la diferencia la hace el registro: el explicador va más rápido, más brillante y casi seco; el grupier, más lento, con cuerpo y sala.",
         "velocidad": 1,
         "desafine": 0,
         "retardoDoble": 0,
         "nivelDoble": 0,
         "apertura": 0,
-        "graves": 1,
+        "graves": 0,
         "pecho": 0,
-        "presencia": 1.5,
+        "presencia": 2.5,
         "sibilancia": -2,
         "saturacion": 0,
         "preRetardo": 0.012,
-        "reverb": 0.06,
+        "reverb": 0.04,
         "eco": 0,
         "ecoTiempo": 0,
         "sombra": 0,
@@ -280,9 +280,9 @@
       },
       "neural": {
         "motor": "kokoro",
-        "sid": 51,
-        "voz": "ef_dora",
-        "velocidad": 1.0
+        "sid": 53,
+        "voz": "em_santa",
+        "velocidad": 1.06
       }
     },
     "auraActiva": true

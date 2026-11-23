@@ -223,7 +223,8 @@ const LAMINAS = {
  * @param {Function} opciones.alCambiar se llama en cada lámina (para el golpe de audio)
  * @param {Function} opciones.alFinal   se llama al terminar o al saltar
  */
-export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montarPersonaje, desmontarPersonaje, personaje: actor }) {
+export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montarPersonaje,
+                             desmontarPersonaje, personaje: actor, pausa = 700, minimo = 3200 }) {
   if (!document.getElementById('estilos-intro')) {
     const hoja = document.createElement('style');
     hoja.id = 'estilos-intro';
@@ -234,6 +235,8 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
   let indice = -1;
   let temporizador = null;
   let abierta = false;
+  let ficha = 0;          // identifica la lámina en curso (ver siguiente())
+  let tope = null;        // por si la voz nunca avisa que terminó
 
   const capa = document.createElement('div');
   capa.className = 'intro oculto';
@@ -279,8 +282,22 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
 
   function siguiente() {
     clearTimeout(temporizador);
+    clearTimeout(tope);
     indice++;
     if (indice >= pasos.length) return cerrar();
+
+    // Ficha de esta lámina. Si una voz ajena termina —una narración del
+    // servidor, por ejemplo— su aviso llega con una ficha vieja y se ignora:
+    // así nada adelanta la lámina antes de tiempo.
+    const mia = ++ficha;
+    const t0 = Date.now();
+
+    /** Pasa a la siguiente, pero nunca antes del tiempo mínimo de lectura. */
+    const programarSiguiente = () => {
+      if (mia !== ficha) return;
+      const falta = Math.max(pausa, minimo - (Date.now() - t0));
+      temporizador = setTimeout(() => { if (mia === ficha) siguiente(); }, falta);
+    };
 
     const paso = pasos[indice];
     pintarPaso(paso);
@@ -294,9 +311,21 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
     // Si no hay voz, se avanza por tiempo estimado: la explicación no se congela.
     const habla = hablar?.(paso.texto, {
       personaje: paso.voz || 'explicador',
-      alTerminar: () => { bocaQuieta(); temporizador = setTimeout(siguiente, 700); }
+      alTerminar: () => { clearTimeout(tope); bocaQuieta(); programarSiguiente(); }
     });
-    if (!habla) temporizador = setTimeout(() => { bocaQuieta(); siguiente(); }, duracion?.(paso.texto, paso.voz) ?? 6000);
+
+    // Red de seguridad: si el audio nunca suena (el navegador puede bloquearlo
+    // hasta que alguien toque la pantalla), la lámina no se queda colgada.
+    if (habla) {
+      const limite = Math.max(minimo + pausa, (duracion?.(paso.texto, paso.voz) ?? 6000) * 2.2);
+      tope = setTimeout(() => { bocaQuieta(); if (mia === ficha) siguiente(); }, limite);
+    }
+    // Sin voz se avanza por tiempo estimado, con un piso generoso: la
+    // explicación no se congela, pero tampoco se lee a medias.
+    if (!habla) {
+      const estimado = Math.max(minimo + pausa, duracion?.(paso.texto, paso.voz) ?? 6000);
+      temporizador = setTimeout(() => { bocaQuieta(); if (mia === ficha) siguiente(); }, estimado);
+    }
   }
 
   function abrir() {
@@ -314,6 +343,8 @@ export function crearIntro({ pasos, hablar, duracion, alCambiar, alFinal, montar
 
   function cerrar() {
     clearTimeout(temporizador);
+    clearTimeout(tope);
+    ficha++;
     abierta = false;
     bocaQuieta();
     actor?.reposo?.();
