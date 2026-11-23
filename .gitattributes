@@ -1,0 +1,17 @@
+# Los .bat tienen que llegar con finales de línea de Windows: con LF,
+# cmd.exe rompe los bloques y la ventana se cierra sin mensaje.
+*.bat text eol=crlf
+
+# Texto normalizado a LF en el repositorio.
+*.js    text eol=lf
+*.mjs   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.yml   text eol=lf
+
+# Binarios: que git no los toque ni intente mostrar diferencias.
+*.wav   binary
+*.png   binary
+*.onnx  binary
