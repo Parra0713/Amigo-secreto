@@ -5,7 +5,7 @@ solo se puede comprobar con ojos, oídos y celulares reales también.
 
 > **Instantánea de la Etapa 1** (primera versión jugable), con las novedades de la Etapa 2
 > anotadas abajo. El rumbo y los pendientes vivos están en `docs/HOJA_DE_RUTA.md`; el
-> encargo de la Etapa 2 está en `docs/PROMPT_ETAPA_2.md`.
+> rumbo de la Etapa 2, también.
 
 ### Novedades de la Etapa 2 (23 de noviembre)
 
@@ -153,14 +153,14 @@ extensión que el código ya deja preparados:
 | Documento | Para qué |
 |---|---|
 | `README.md` | Técnico: cómo arrancar, estructura, configuración, seguridad |
-| `CLAUDE.md` | Reglas del proyecto para futuras sesiones de IA |
+| `docs/GIT.md` | Convenciones de trabajo, ramas y publicación |
 | `docs/GUIA_ANFITRION.md` | Para ti la noche del juego, sin tecnicismos |
 | `docs/ARQUITECTURA.md` | Stack, modelo de datos, protocolo y **bitácora de decisiones** |
 | `docs/INVESTIGACION.md` | Por qué este stack y no otro (Fase 0) |
-| `docs/INVESTIGACION_VOZ.md` | Comparación de TTS offline y por qué sherpa-onnx + Piper |
+| `docs/INVESTIGACION_VOZ.md` | Comparación de TTS offline, escucha a ciegas y por qué Kokoro |
 | `docs/HIG.md` | Reglas de interfaz (derivadas de las HIG de Apple) |
 | `docs/3D_WORLD_HIG.md` | Diseño del personaje 3D y su tabla de verificación |
 | `docs/CREDITOS.md` | Licencias de todo lo que entra al proyecto |
 | `docs/ESTADO.md` | Este documento (instantánea de la Etapa 1) |
 | `docs/HOJA_DE_RUTA.md` | Visión, listones de calidad, etapas y pendientes vivos |
-| `docs/PROMPT_ETAPA_2.md` | Encargo de la Etapa 2: voces naturales y explicación animada |
+

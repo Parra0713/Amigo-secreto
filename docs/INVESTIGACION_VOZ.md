@@ -132,5 +132,4 @@ Hipótesis a descartar con un laboratorio de escucha A/B, antes de cambiar nada:
 
 Oportunidad principal: el texto es casi todo predecible y los nombres se conocen en el
 registro, así que se puede **pre-renderizar con un modelo más lento y mejor** (varias tomas
-por frase) en lugar de sintetizar en vivo. El encargo completo está en
-`docs/PROMPT_ETAPA_2.md`.
+por frase) en lugar de sintetizar en vivo.

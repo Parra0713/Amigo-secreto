@@ -55,8 +55,8 @@ lista blanca por jugador.
 
 Detalle en [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md). Por qué este stack y no otro,
 en [docs/INVESTIGACION.md](docs/INVESTIGACION.md). Reglas de interfaz (derivadas de las
-Human Interface Guidelines de Apple) en [docs/HIG.md](docs/HIG.md). Convenciones para
-seguir trabajando en el proyecto, en [CLAUDE.md](CLAUDE.md).
+Human Interface Guidelines de Apple) en [docs/HIG.md](docs/HIG.md). Convenciones de
+trabajo y publicación, en [docs/GIT.md](docs/GIT.md).
 
 ```
 engine/     reglas puras + rondas como plugins + generador de pistas

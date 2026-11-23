@@ -50,7 +50,7 @@ piloto automático, grupier 3D, presentación de 10 láminas, dos voces y voz ne
 103 pruebas en verde. Ver `docs/ESTADO.md`.
 
 ### Etapa 2 — Naturalidad y espectáculo (en curso)
-Encargo completo en `docs/PROMPT_ETAPA_2.md`.
+Dos frentes grandes —voz y explicación— más el cierre de pendientes.
 
 - Voces naturales (laboratorio A/B, modelos más expresivos, pre-renderizado, texto escrito
   para el oído, es-CO si es viable).
@@ -107,4 +107,4 @@ Se agrega una fila por cada prueba con personas, celulares o la TV reales.
 
 | Fecha | Quién probó | Qué se probó | Qué se observó | Acción |
 |---|---|---|---|---|
-| 23-nov-2026 | Anfitrión | Primera versión completa | Las voces suenan robóticas; las explicaciones son planas | Etapa 2, prioridad alta (ver `PROMPT_ETAPA_2.md`) |
+| 23-nov-2026 | Anfitrión | Primera versión completa | Las voces suenan robóticas; las explicaciones son planas | Etapa 2, prioridad alta |

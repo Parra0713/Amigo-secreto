@@ -175,9 +175,10 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   etiquetas en los campos, regiones `aria-live`, icono y manifiesto, y confirmación de
   dos pasos en lugar de `confirm()`. Lo aplicado y lo que no aplica, en `docs/HIG.md`;
   lo verificable sin navegador, en `tests/interfaz.test.js`.
-- **2026-11-23** — Se agregó `CLAUDE.md` en la raíz con las reglas del proyecto para
-  futuras sesiones de IA: engine puro, proyección por lista blanca, sin internet en
-  tiempo de ejecución, configuración antes que código, y CRLF en los `.bat`.
+- **2026-11-23** — Se escribieron las reglas del proyecto para quien vuelva a tocarlo:
+  engine puro, proyección por lista blanca, sin internet en tiempo de ejecución,
+  configuración antes que código, y CRLF en los `.bat`. Resumidas en `docs/GIT.md` y
+  explicadas en este documento.
 - **2026-11-23** — Ronda 2: el servidor calcula qué montones y qué temas **tienen
   material** para una mentira (`categoriasViables` en `engine/pistas/generador.js`) y la
   vista del jugador solo ofrece esas opciones (`objetivos` en la proyección). Antes el
@@ -275,7 +276,7 @@ Cada transición se dispara por: todos listos, timeout de la ronda, o el admin.
   evidencia** el paso de build, las dependencias, el audio no sintetizado y el LLM local
   opcional. Motivo: tras la primera prueba el anfitrión reportó voces robóticas y una
   explicación plana, y varias restricciones de la Etapa 1 (pensadas para llegar rápido)
-  limitaban la solución. Encargo de la Etapa 2 en `docs/PROMPT_ETAPA_2.md`.
+  limitaban la solución. Las prioridades de la Etapa 2 están en `docs/HOJA_DE_RUTA.md`.
 - **2026-11-23** — **Kokoro reemplaza a Piper como motor de voz**, por escucha a ciegas
   (6-0 entre dos rondas, incluida la prueba con música encima). Como corre a poco más de
   tiempo real, se invierte el enfoque: `tools/prerenderizar.mjs` genera el banco completo

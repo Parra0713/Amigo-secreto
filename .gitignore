@@ -7,3 +7,7 @@ modelos/
 
 # Salidas de trabajo y material pesado que no es del proyecto
 Claude outputs/
+
+# Notas de trabajo que no se publican
+CLAUDE.md
+docs/PROMPT_ETAPA_2.md
