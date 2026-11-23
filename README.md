@@ -14,7 +14,8 @@ y una apuesta final. El sorteo se hace aparte; esto solo maneja la revelación.
   cada regla se ve ocurrir antes de nombrarse. Hay versión completa y versión exprés.
 - Español de Colombia en toda la interfaz.
 
-👉 Si no eres técnico, lee **[docs/GUIA_ANFITRION.md](docs/GUIA_ANFITRION.md)**.
+👉 ¿Lo vas a instalar en otro PC? **[docs/INSTALAR.md](docs/INSTALAR.md)**.
+👉 Si no eres técnico y ya está instalado, lee **[docs/GUIA_ANFITRION.md](docs/GUIA_ANFITRION.md)**.
 
 El proyecto sigue evolucionando: el rumbo y las prioridades están en
 **[docs/HOJA_DE_RUTA.md](docs/HOJA_DE_RUTA.md)**.
@@ -25,10 +26,16 @@ El proyecto sigue evolucionando: el rumbo y las prioridades están en
 git clone https://github.com/Parra0713/Amigo-secreto.git
 cd Amigo-secreto
 npm install     # solo la primera vez, necesita internet
+npm run voz kokoro && npm run voz alta && npm run voces   # la voz del grupier (opcional)
 npm start       # http://localhost:8080/tv/
 ```
 
-En Windows basta doble clic en `iniciar.bat` (instala si falta, abre la TV y arranca).
+En Windows basta doble clic en `iniciar.bat` (instala si falta, abre la TV y arranca),
+`descargar-voz.bat` para la voz del grupier y `firewall.bat` para que entren los
+celulares.
+
+👉 Instalación paso a paso en otro PC, con lo que hay que descargar y cómo actualizar:
+**[docs/INSTALAR.md](docs/INSTALAR.md)**.
 
 | Ruta | Para qué |
 |---|---|
@@ -39,7 +46,8 @@ En Windows basta doble clic en `iniciar.bat` (instala si falta, abre la TV y arr
 ## Pruebas
 
 ```bash
-npm test                      # 103 pruebas: reglas, pistas, secretos, sesiones, sin-internet, interfaz, arranque
+npm test                      # 159 pruebas, incluidas las de extremo a extremo (~1 min)
+npm run test:rapido           # las mismas sin levantar servidores (~6 s)
 node tests/simulador.js 15          # partida completa de extremo a extremo con 15 bots
 node tests/simulador.js 5 --auto    # igual, pero sin tocar el panel: el juego avanza solo
 ```

@@ -59,6 +59,18 @@ git ls-files | grep -Ev "^(web|docs|engine|server|tests|tools|config)/"
 git grep -nIi -e "192\.168\." -e "C:\\\\Users"      # rutas o IPs reales
 ```
 
+## Subir los cambios
+
+```bash
+git status                      # qué cambió
+git add -A
+git commit -m "Hace tal cosa"
+git push
+```
+
+En otro PC, para ponerse al día: `git pull`. Si entraron dependencias nuevas,
+`npm install`; si cambiaron frases del guion, `npm run voces`.
+
 ## Publicar
 
 ```bash

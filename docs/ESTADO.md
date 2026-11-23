@@ -159,6 +159,7 @@ extensión que el código ya deja preparados:
 |---|---|
 | `README.md` | Técnico: cómo arrancar, estructura, configuración, seguridad |
 | `docs/GIT.md` | Convenciones de trabajo, ramas y publicación |
+| `docs/INSTALAR.md` | Instalar en otro PC desde cero, y cómo actualizar |
 | `docs/GUIA_ANFITRION.md` | Para ti la noche del juego, sin tecnicismos |
 | `docs/ARQUITECTURA.md` | Stack, modelo de datos, protocolo y **bitácora de decisiones** |
 | `docs/INVESTIGACION.md` | Por qué este stack y no otro (Fase 0) |

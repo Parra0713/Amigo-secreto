@@ -35,8 +35,16 @@ echo.
 echo     TV:      http://localhost:8080/tv/
 echo     Grupier: http://localhost:8080/admin/
 echo.
-if exist "modelos\vits-piper-es_MX-claude-high" echo     Voz: neuronal en espanol (es_MX)
-if not exist "modelos\vits-piper-es_MX-claude-high" echo     Voz: la de Windows. Para una mucho mejor, corre descargar-voz.bat
+if exist "modelos\kokoro-multi-lang-v1_0" goto vozbuena
+if exist "modelos\vits-piper-es_MX-claude-high" goto vozrapida
+echo     Voz: la de Windows. Para una mucho mejor, corre descargar-voz.bat
+goto vozlista
+:vozbuena
+echo     Voz: propia, del banco pre-renderizado
+goto vozlista
+:vozrapida
+echo     Voz: propia, rapida. Para la mejor, corre descargar-voz.bat
+:vozlista
 echo.
 echo     Los celulares entran escaneando el codigo QR de la TV.
 echo     Para apagar todo: cierra esta ventana.
